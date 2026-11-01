@@ -48,3 +48,22 @@ Both process-creation events satisfied all four conditions implemented in the Py
 ### Limitations
 
 This was an automated Python condition test, not execution of the Sigma rule through a Sigma detection engine or Splunk. The test covered only the two process-creation events in this dataset. It does not establish malicious intent, detection performance on other datasets, or a false-positive rate.
+
+## Validation with Chainsaw (added)
+
+- Tool: Chainsaw v2.17.1, mapping sigma-event-logs-all.yml
+- Dataset: evasion_execution_imageload_wuauclt_lolbas.evtx (68.0 KiB)
+- Command: .\chainsaw.exe --no-banner hunt <evtx> -s sigma_rules\rule_001_suspicious_wuauclt.yml --mapping .\mappings\sigma-event-logs-all.yml
+- Result: 2 detections on 2 documents (Sysmon Event ID 1)
+
+| Record ID | UtcTime | Image | PID | Parent | Parent PID |
+|---|---|---|---|---|---|
+| 2196442 | 2020-10-13 20:11:42.277 | cmd.exe | 6372 | wuauclt.exe | 1716 |
+| 2196443 | 2020-10-13 20:11:42.277 | cmd.exe | 7648 | wuauclt.exe | 1716 |
+
+- Host: LAPTOP-JU4M3I0E, User: bouss
+- Parent command line: wuauclt.exe /UpdateDeploymentProvider C:\ProgramData\Intel\helpa.dll /RunHandlerComServer
+- Interpretation: wuauclt was used to load a DLL from a non-standard folder, then spawned cmd.exe twice. This is consistent with LOLBin proxy execution (T1218).
+
+## Limitations
+Single public dataset, single host, no benign baseline, so the false-positive rate is untested. Not run in a live SIEM.

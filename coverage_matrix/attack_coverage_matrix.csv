@@ -1,7 +1,7 @@
 
 Technique ID,ATT&CK Tactic,Technique Name,Related Rule,Validation Status,Notes
 T1059.001,Execution,PowerShell,rule_002_powershell_encoded_command,Pending,Rule syntax validation is not telemetry testing
-T1059.003,Execution,Windows Command Shell,rule_001_suspicious_wuauclt,Candidate match,Relevant event found; functional testing pending
+T1218,Defense Evasion,System Binary Proxy Execution,rule_001_suspicious_wuauclt,Covered (tested),2 detections via Chainsaw v2.17.1 on wuauclt LOLBAS EVTX
 T1218.011,Defense Evasion,Rundll32,rule_004_suspicious_rundll32,Pending,Rule syntax validation is not telemetry testing
 T1003.001,Credential Access,LSASS Memory,rule_005_comsvcs_minidump,Pending,Functional testing pending
 T1053.005,Persistence,Scheduled Task,rule_006_scheduled_task_creation,Pending,Functional testing pending
