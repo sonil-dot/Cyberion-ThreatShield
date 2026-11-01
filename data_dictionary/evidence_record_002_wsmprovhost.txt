@@ -1,0 +1,30 @@
+# Cyberion ThreatShield — Evidence Record 002
+
+## Dataset Details
+- Dataset: LM_PowershellRemoting_sysmon_1_wsmprovhost
+- Log source: Sysmon
+- Event ID: 1 — Process Creation
+- Timestamp (UTC): 2019-05-16 01:38:19.616
+
+## Observed Evidence
+- Image: C:\Windows\System32\HOSTNAME.EXE
+- Parent image: C:\Windows\System32\wsmprovhost.exe
+- Parent command line: C:\Windows\system32\wsmprovhost.exe -Embedding
+- User: insecurebank\Administrator
+- Integrity level: High
+- Process ID: 2936
+- Parent process ID: 3332
+- SHA-256: CA40BB9470E8E73767F3AA43DDF51F814481167DEC6C2FAA1996C18AB2C621DB
+
+## Initial Analysis
+The event records HOSTNAME.EXE running as a child of wsmprovhost.exe. The parent process is associated with Windows Remote Management and can be involved in remote PowerShell sessions.
+
+## Preliminary Assessment
+Classification: Requires investigation.
+
+The parent-child relationship is relevant to remote execution monitoring, but this event alone does not establish malicious activity. Related events, session details, and the wider dataset must be examined before drawing a conclusion.
+
+## Detection Engineering Relevance
+Potential detection area: process creation by wsmprovhost.exe, particularly when the child process or command line is unusual.
+
+Validation status: Evidence recorded. No rule match has yet been confirmed.

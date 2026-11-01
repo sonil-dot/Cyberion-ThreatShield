@@ -1,0 +1,32 @@
+# Cyberion ThreatShield — Evidence Record 004
+
+## Dataset Details
+- Dataset: CA_keepass_KeeThief_Get-KeePassDatabaseKey
+- Log source: Microsoft-Windows-Sysmon/Operational
+- Event ID: 8 — CreateRemoteThread
+- Timestamp (UTC): 2019-04-27 18:55:04.980
+- Event record ID: 7071
+- Computer: IEWIN7
+
+## Observed Evidence
+- Source process: C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe
+- Source process ID: 2856
+- Target process: C:\Program Files\KeePass Password Safe 2\KeePass.exe
+- Target process ID: 2364
+- New thread ID: 1384
+- Start address: 0x06160000
+- Start module: Not provided
+- Start function: Not provided
+
+## Initial Analysis
+Sysmon Event ID 8 records a remote thread being created in another process. Here, PowerShell is recorded as the source and KeePass.exe as the target. This is relevant to investigating possible process injection or access to sensitive application memory.
+
+## Preliminary Assessment
+Classification: Suspicious — requires investigation.
+
+The event alone does not establish that credential theft occurred. Additional process, script, and surrounding event evidence is needed to determine the activity's purpose.
+
+## Detection Engineering Relevance
+Potential detection area: PowerShell creating a remote thread inside a sensitive application such as KeePass.
+
+Validation status: Evidence documented; no detection rule has yet been functionally tested against this event.

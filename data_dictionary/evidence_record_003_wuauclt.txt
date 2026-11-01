@@ -1,0 +1,32 @@
+# Cyberion ThreatShield — Evidence Record 003
+
+## Dataset Details
+- Dataset: evasion_execution_imageload_wuauclt_lolbas
+- Log source: Microsoft-Windows-Sysmon/Operational
+- Event ID: 1 — Process Creation
+- Timestamp (UTC): 2020-10-13 20:11:42.277
+- Event record ID: 2196442
+- Computer: LAPTOP-JU4M3I0E
+
+## Observed Evidence
+- Image: C:\Windows\System32\cmd.exe
+- Process ID: 6372
+- Parent image: C:\Windows\System32\wuauclt.exe
+- Parent process ID: 1716
+- Parent command line: wuauclt.exe /UpdateDeploymentProvider C:\ProgramData\Intel\helpa.dll /RunHandlerComServer
+- User: LAPTOP-JU4M3I0E\bouss
+- Integrity level: Medium
+- SHA-256: FF79D3C4A0B7EB191783C323AB8363EBD1FD10BE58D8BCC96B07067743CA81D5
+
+## Initial Analysis
+The event records cmd.exe being launched with wuauclt.exe as its parent. The parent command line references a DLL under C:\ProgramData\Intel\helpa.dll. This combination warrants investigation because legitimate Windows utilities can be abused to execute unexpected code.
+
+## Preliminary Assessment
+Classification: Suspicious — requires further investigation.
+
+The event is consistent with the conditions targeted by rule_001_suspicious_wuauclt.yml. However, a match has not yet been confirmed by executing the rule against parsed event data, and this event alone does not prove compromise.
+
+## Detection Engineering Relevance
+Candidate detection: suspicious command-shell launch from wuauclt.exe with the specified DLL-related command line.
+
+Validation status: Evidence documented; functional rule testing pending.

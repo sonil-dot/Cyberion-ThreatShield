@@ -1,0 +1,27 @@
+title: PowerShell Attempt to Disable Windows Defender
+id: 5e8b3f20-7a64-4c91-8d25-6f0a2b7c913e
+status: experimental
+description: Detects PowerShell commands that attempt to disable Defender real-time monitoring or modify Defender preferences.
+author: Cyberion ThreatShield
+date: 2026/10/23
+tags:
+    - attack.defense-impairment
+logsource:
+    product: windows
+    category: process_creation
+detection:
+    selection_image:
+        Image|endswith:
+            - '\powershell.exe'
+            - '\pwsh.exe'
+    selection_disable:
+        CommandLine|contains:
+            - 'DisableRealtimeMonitoring'
+    selection_preference:
+        CommandLine|contains|all:
+            - 'Set-MpPreference'
+            - 'DisableRealtimeMonitoring'
+    condition: selection_image and (selection_disable or selection_preference)
+falsepositives:
+    - Authorized security administration or Defender configuration testing.
+level: high

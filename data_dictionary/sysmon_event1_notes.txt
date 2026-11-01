@@ -1,0 +1,46 @@
+# Cyberion ThreatShield — Evidence Record 001
+
+## Dataset and Log Details
+
+- **Log source:** Microsoft-Windows-Sysmon/Operational
+- **Event ID:** 1
+- **Event type:** Process Creation
+- **Event timestamp (UTC):** 2020-10-13 20:11:42.277
+- **Event record ID:** 2196443
+- **Computer:** LAPTOP-JU4M3I0E
+
+## Key Event Fields
+
+| Field | Observed value |
+|---|---|
+| Image | C:\Windows\System32\cmd.exe |
+| Process ID | 7648 |
+| Command line | c:\windows\system32\cmd.exe |
+| Parent image | C:\Windows\System32\wuauclt.exe |
+| Parent process ID | 1716 |
+| Parent command line | wuauclt.exe /UpdateDeploymentProvider C:\ProgramData\Intel\helpa.dll /RunHandlerComServer |
+| User | LAPTOP-JU4M3I0E\bouss |
+| Integrity level | Medium |
+| SHA-256 | FF79D3C4A0B7EB191783C323AB8363EBD1FD10BE58D8BCC96B07067743CA81D5 |
+
+## Initial Analysis
+
+Sysmon Event ID 1 records process creation. This event shows cmd.exe being launched with wuauclt.exe recorded as its parent process.
+
+The parent command line references a DLL located at C:\ProgramData\Intel\helpa.dll. This relationship warrants further investigation because unexpected use of legitimate Windows utilities can occur during malicious activity.
+
+## Preliminary Assessment
+
+**Status:** Suspicious — requires further investigation.
+
+This single event does not establish that a compromise occurred. Additional telemetry, file reputation checks, and surrounding process activity are required before assigning a final classification.
+
+## Detection Engineering Relevance
+
+Potential detection area: suspicious parent-child process relationships involving Windows Update utilities and command interpreters.
+
+**Validation status:** Candidate detection only; no Sigma rule has been tested against this event yet.
+
+## Evidence Limitations
+
+The local Event Viewer did not display the full Sysmon message description, but the structured XML fields were available. The original dataset context and additional corroborating events have not yet been examined.

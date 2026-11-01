@@ -1,0 +1,21 @@
+title: Possible Windows Event Log Clearing
+id: 6d3a9f21-7c54-4e80-b2a1-5f8c0d734e96
+status: experimental
+description: Detects wevtutil.exe commands using common operations to clear Windows event logs.
+author: Cyberion ThreatShield
+date: 2026/10/23
+logsource:
+    product: windows
+    category: process_creation
+detection:
+    selection_image:
+        Image|endswith: '\wevtutil.exe'
+    selection_command:
+        CommandLine|contains:
+            - ' cl '
+            - ' cl '
+            - 'clear-log'
+    condition: selection_image and selection_command
+falsepositives:
+    - Authorized log maintenance or administrative testing.
+level: high

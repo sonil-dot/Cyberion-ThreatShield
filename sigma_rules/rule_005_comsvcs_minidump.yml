@@ -1,0 +1,23 @@
+
+title: Rundll32 Comsvcs MiniDump Activity
+id: 7b2c9e41-5f86-4a30-b1d7-8e2f6c904a53
+status: experimental
+description: Detects rundll32.exe command lines referencing comsvcs.dll and MiniDump, which may indicate process memory dumping and possible credential access.
+author: Cyberion ThreatShield
+date: 2026/10/23
+tags:
+    - attack.t1003.001
+logsource:
+    product: windows
+    category: process_creation
+detection:
+    selection_image:
+        Image|endswith: '\rundll32.exe'
+    selection_command:
+        CommandLine|contains|all:
+            - 'comsvcs.dll'
+            - 'MiniDump'
+    condition: all of selection_*
+falsepositives:
+    - Authorized incident response, debugging, or security testing that dumps process memory.
+level: high

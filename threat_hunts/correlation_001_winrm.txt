@@ -1,0 +1,24 @@
+# Correlation Specification 001 — Repeated WinRM Process Activity
+
+## Objective
+Identify repeated process-creation activity associated with Windows Remote Management (WinRM).
+
+## Source
+Sysmon Event ID 1 — Process Creation.
+
+## Correlation Logic
+- Filter events where ParentImage ends with \wsmprovhost.exe.
+- Group matching events by computer.
+- Use a rolling five-minute time window.
+- Raise an investigation alert when three or more matching events occur within that window.
+
+## Severity
+Medium — requires investigation.
+
+## False Positives
+- Legitimate PowerShell remoting sessions.
+- System administration scripts.
+- Remote management and automation tools.
+
+## Validation Status
+Design documented; execution and correlation have not been tested. This specification is not yet a validated, executable Sigma correlation rule.

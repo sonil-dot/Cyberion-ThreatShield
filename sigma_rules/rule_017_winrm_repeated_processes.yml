@@ -1,0 +1,15 @@
+
+title: Repeated WinRM Host Process Creation
+id: 9c3e5f7a-1b24-4d68-8e90-2a4c6f8b0d12
+status: experimental
+description: Correlation candidate for repeated process creation events associated with Windows Remote Management. Requires correlation-capable backend support.
+correlation:
+    type: event_count
+    rules:
+        - rule_016_wsmprovhost_child_process
+    group-by:
+        - Computer
+    timespan: 5m
+    condition:
+        gte: 3
+level: medium

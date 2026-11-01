@@ -1,0 +1,22 @@
+# Cyberion ThreatShield — Dataset Inventory
+
+## Dataset 1
+- Filename: LM_PowershellRemoting_sysmon_1_wsmprovhost
+- Log type: Sysmon
+- Focus: PowerShell remoting and process creation
+- Investigation purpose: Identify suspicious remote execution and process relationships.
+
+## Dataset 2
+- Filename: evasion_execution_imageload_wuauclt_lolbas
+- Log type: Sysmon
+- Focus: Suspicious Windows Update utility activity and image loading
+- Investigation purpose: Investigate potentially suspicious execution involving wuauclt.exe and related processes.
+
+## Dataset 3
+- Filename: CA_keepass_KeeThief_Get-KeePassDatabaseKey
+- Log type: Sysmon
+- Focus: Potential credential-access activity involving KeePass
+- Investigation purpose: Examine process and image-load telemetry for signs of credential or password-database access.
+
+## Evidence Limitations
+These datasets are samples intended for security analysis. Their filenames describe the scenario, but do not independently prove that a particular event is malicious. Findings must be supported by the actual event records.

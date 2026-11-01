@@ -1,0 +1,28 @@
+title: Suspicious Wuauclt Command Shell Launch
+id: 8b6c5c47-82d2-4af0-9a81-6c8c2c2d1101
+status: experimental
+description: Detects cmd.exe launched by wuauclt.exe when the parent command line references helpa.dll and UpdateDeploymentProvider.
+references:
+    - https://attack.mitre.org/techniques/T1059/003/
+author: Cyberion ThreatShield
+date: 2026/10/23
+tags:
+    - attack.execution
+    - attack.t1059.003
+logsource:
+    product: windows
+    category: process_creation
+    definition: Sysmon Event ID 1 with ParentImage and ParentCommandLine fields
+detection:
+    selection_child:
+        Image|endswith: '\cmd.exe'
+    selection_parent:
+        ParentImage|endswith: '\wuauclt.exe'
+    selection_parent_command:
+        ParentCommandLine|contains|all:
+            - 'UpdateDeploymentProvider'
+            - 'helpa.dll'
+    condition: all of selection_*
+falsepositives:
+    - Legitimate software updates or administrative activity using unusual update-provider command lines.
+level: high

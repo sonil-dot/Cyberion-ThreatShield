@@ -1,0 +1,27 @@
+title: Possible Windows Firewall Configuration Change
+id: 1c7e4a92-5d63-4b80-9f21-6a3d8e705c14
+status: experimental
+description: Detects netsh commands that reference Windows Firewall configuration and potentially modify its settings.
+author: Cyberion ThreatShield
+date: 2026/10/23
+tags:
+    - attack.defense-impairment
+logsource:
+    product: windows
+    category: process_creation
+detection:
+    selection_image:
+        Image|endswith: '\netsh.exe'
+    selection_firewall:
+        CommandLine|contains:
+            - 'firewall'
+            - 'advfirewall'
+    selection_change:
+        CommandLine|contains:
+            - 'set'
+            - 'add'
+            - 'delete'
+    condition: selection_image and selection_firewall and selection_change
+falsepositives:
+    - Authorized firewall administration and network troubleshooting.
+level: medium

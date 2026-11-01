@@ -1,0 +1,36 @@
+Image="*\\cmd.exe" ParentImage="*\\wuauclt.exe" ParentCommandLine="*UpdateDeploymentProvider*" ParentCommandLine="*helpa.dll*"
+
+Image IN ("*\\powershell.exe", "*\\pwsh.exe") CommandLine IN ("*-encodedcommand*", "*-encodedcommand *", "*-enc *", "*-e *")
+
+Image IN ("*\\powershell.exe", "*\\pwsh.exe") CommandLine="*DisableRealtimeMonitoring*" OR (CommandLine="*Set-MpPreference*" CommandLine="*DisableRealtimeMonitoring*")
+
+Image="*\\rundll32.exe" CommandLine IN ("*\\AppData\\*", "*\\Temp\\*", "*\\Windows\\Temp\\*", "*\\Users\\Public\\*")
+
+Image="*\\rundll32.exe" CommandLine="*comsvcs.dll*" CommandLine="*MiniDump*"
+
+Image="*\\schtasks.exe" CommandLine="*/create*"
+
+Image="*\\sc.exe" CommandLine="*create*"
+
+Image IN ("*\\net.exe", "*\\net1.exe") CommandLine="*user*" CommandLine="*/add*"
+
+Image IN ("*\\PsExec.exe", "*\\PsExec64.exe")
+
+Image="*\\netsh.exe" CommandLine IN ("*firewall*", "*advfirewall*") CommandLine IN ("*set*", "*add*", "*delete*")
+
+Image="*\\wevtutil.exe" CommandLine IN ("* cl *", "* cl *", "*clear-log*")
+
+Image="*\\bitsadmin.exe" CommandLine IN ("*/create*", "*/addfile*")
+
+ParentImage="*\\fodhelper.exe" Image IN ("*\\cmd.exe", "*\\powershell.exe", "*\\pwsh.exe")
+
+CommandLine IN ("*\\.ssh\\id_rsa*", "*\\.ssh\\id_ed25519*", "*\\.ssh\\id_ecdsa*")
+
+Image="*\\regsvr32.exe" CommandLine IN ("*/i:*", "*scrobj.dll*")
+
+ParentImage="*\\wsmprovhost.exe" Image IN ("*\\cmd.exe", "*\\powershell.exe", "*\\pwsh.exe")
+
+| bin _time span=5m
+| stats count as event_count by _time Computer
+
+| search event_count >= 3

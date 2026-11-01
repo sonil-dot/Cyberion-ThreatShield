@@ -1,0 +1,21 @@
+
+title: Scheduled Task Creation
+id: 9c3e1a72-4d85-4f60-a2b9-7e6d5c1f8034
+status: experimental
+description: Detects schtasks.exe commands containing the task creation flag, which may indicate scheduled-task persistence but can also reflect legitimate administration.
+author: Cyberion ThreatShield
+date: 2026/10/23
+tags:
+    - attack.t1053.005
+logsource:
+    product: windows
+    category: process_creation
+detection:
+    selection_image:
+        Image|endswith: '\schtasks.exe'
+    selection_create:
+        CommandLine|contains: '/create'
+    condition: selection_image and selection_create
+falsepositives:
+    - Legitimate software installers, system administrators, or maintenance tasks.
+level: medium

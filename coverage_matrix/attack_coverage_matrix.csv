@@ -1,0 +1,17 @@
+
+Technique ID,ATT&CK Tactic,Technique Name,Related Rule,Validation Status,Notes
+T1059.001,Execution,PowerShell,rule_002_powershell_encoded_command,Pending,Rule syntax validation is not telemetry testing
+T1059.003,Execution,Windows Command Shell,rule_001_suspicious_wuauclt,Candidate match,Relevant event found; functional testing pending
+T1218.011,Defense Evasion,Rundll32,rule_004_suspicious_rundll32,Pending,Rule syntax validation is not telemetry testing
+T1003.001,Credential Access,LSASS Memory,rule_005_comsvcs_minidump,Pending,Functional testing pending
+T1053.005,Persistence,Scheduled Task,rule_006_scheduled_task_creation,Pending,Functional testing pending
+T1543.003,Persistence,Windows Service,rule_007_service_creation,Pending,Functional testing pending
+T1136.001,Persistence,Create Account,rule_008_local_account_creation,Pending,Functional testing pending
+T1569.002,Execution,Service Execution,rule_009_psexec_execution,Pending,Functional testing pending
+T1685,Unverified,Unverified mapping,rule_010_firewall_changes,Review required,Verify technique mapping before claiming coverage
+Unmapped,Unmapped,Event Log Clearing,rule_011_event_log_clearing,Review required,Verify ATT&CK mapping
+Unmapped,Unmapped,BITS Job Activity,rule_012_bitsadmin_activity,Pending,Technique mapping not assigned
+Unmapped,Unmapped,Fodhelper Child Process,rule_013_fodhelper_child_process,Pending,Technique mapping not assigned
+Unmapped,Unmapped,SSH Key Discovery,rule_014_ssh_key_discovery,Pending,Technique mapping not assigned
+Unmapped,Unmapped,Regsvr32 Scriptlet Execution,rule_015_regsvr32_scriptlet,Pending,Technique mapping not assigned
+Unmapped,Unmapped,WinRM Child Process,rule_016_wsmprovhost_child_process,Pending,Functional testing pending
