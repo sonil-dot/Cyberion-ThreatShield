@@ -1,0 +1,23 @@
+title: Remote Thread Created in KeePass Process
+id: 815aa268-abff-4aab-9079-5f796e7f10d9
+status: experimental
+description: Detects a remote thread created inside KeePass by another process, a technique used by KeeThief to extract the KeePass master key.
+references:
+    - https://attack.mitre.org/techniques/T1555/005/
+    - https://github.com/EmpireProject/KeeThief
+tags:
+    - attack.credential-access
+    - attack.t1555.005
+logsource:
+    product: windows
+    category: create_remote_thread
+detection:
+    selection:
+        TargetImage|endswith: '\KeePass.exe'
+    filter_self:
+        SourceImage|endswith: '\KeePass.exe'
+    condition: selection and not filter_self
+falsepositives:
+    - Accessibility or security software that injects into KeePass
+    - Some KeePass plugins or auto-type helpers
+level: high
