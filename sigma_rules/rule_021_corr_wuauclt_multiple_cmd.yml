@@ -1,0 +1,21 @@
+title: Wuauclt Spawning Multiple cmd.exe From One Parent
+id: ce92f978-80e5-4fbb-92ae-b0e9d933d7e9
+status: experimental
+description: Correlation rule. Fires when one wuauclt.exe process spawns two or more cmd.exe within one minute, which fits repeated command execution through wuauclt DLL abuse.
+references:
+    - https://attack.mitre.org/techniques/T1218/
+tags:
+    - attack.defense-evasion
+    - attack.t1218
+correlation:
+    type: event_count
+    rules:
+        - 8b6c5c47-82d2-4af0-9a81-6c8c2c2d1101
+    group-by:
+        - ParentProcessGuid
+    timespan: 1m
+    condition:
+        gte: 2
+falsepositives:
+    - Unlikely; legitimate Windows Update does not spawn command shells
+level: high

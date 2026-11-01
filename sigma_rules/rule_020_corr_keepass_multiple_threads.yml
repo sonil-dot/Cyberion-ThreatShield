@@ -1,0 +1,21 @@
+title: Multiple Remote Threads Injected Into KeePass By One Process
+id: 66bd2a14-05f4-4215-a4e1-b6191bca4c0d
+status: experimental
+description: Correlation rule. Fires when one source process creates two or more remote threads in KeePass within one minute, which fits repeated injection attempts such as KeeThief.
+references:
+    - https://attack.mitre.org/techniques/T1555/005/
+tags:
+    - attack.credential-access
+    - attack.t1555.005
+correlation:
+    type: event_count
+    rules:
+        - 815aa268-abff-4aab-9079-5f796e7f10d9
+    group-by:
+        - SourceProcessGuid
+    timespan: 1m
+    condition:
+        gte: 2
+falsepositives:
+    - Debuggers or security tools attaching repeatedly to KeePass
+level: high
