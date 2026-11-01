@@ -1,0 +1,21 @@
+title: Wuauclt UpdateDeploymentProvider Launching cmd.exe (tuned)
+id: 422b3fb9-4e3a-46f7-b34c-48f22c8a9e44
+status: experimental
+description: Tuned variant of rule 001. Alerts only when wuauclt.exe was started with /UpdateDeploymentProvider and spawns cmd.exe.
+references:
+    - https://attack.mitre.org/techniques/T1218/
+tags:
+    - attack.defense-evasion
+    - attack.t1218
+logsource:
+    product: windows
+    category: process_creation
+detection:
+    selection:
+        ParentImage|endswith: '\wuauclt.exe'
+        ParentCommandLine|contains: 'UpdateDeploymentProvider'
+        Image|endswith: '\cmd.exe'
+    condition: selection
+falsepositives:
+    - Unlikely; legitimate Windows Update does not use this flag to start cmd.exe
+level: high
