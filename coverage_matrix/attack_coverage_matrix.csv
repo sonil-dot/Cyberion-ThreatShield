@@ -1,4 +1,4 @@
-﻿Technique ID,ATT&CK Tactic,Technique Name,Related Rule,Validation Status,Notes
+Technique ID,ATT&CK Tactic,Technique Name,Related Rule,Validation Status,Notes
 T1218,Defense Evasion,System Binary Proxy Execution,rule_001_suspicious_wuauclt,Covered (tested),2 detections via Chainsaw v2.17.1 on wuauclt EVTX
 T1059.001,Execution,PowerShell,rule_002_powershell_encoded_command,Written not validated,No matching sample tested
 T1562.001,Defense Evasion,Impair Defenses: Disable or Modify Tools,rule_003_defender_tampering,Written not validated,Verify ID on attack.mitre.org
@@ -14,7 +14,7 @@ T1197,Persistence,BITS Jobs,rule_012_bitsadmin_activity,Written not validated,Ve
 T1548.002,Privilege Escalation,Bypass User Account Control,rule_013_fodhelper_child_process,Written not validated,Verify ID on attack.mitre.org
 T1552.004,Credential Access,Private Keys,rule_014_ssh_key_discovery,Written not validated,Verify ID on attack.mitre.org
 T1218.010,Defense Evasion,Regsvr32,rule_015_regsvr32_scriptlet,Written not validated,Verify ID on attack.mitre.org
-T1021.006,Lateral Movement,Windows Remote Management,rule_016_wsmprovhost_child_process; rule_017_winrm_repeated_processes,Written not validated,Change to Covered (tested) only if Chainsaw shows detections for 016; 017 is a correlation rule
+T1021.006,Lateral Movement,Windows Remote Management,rule_019_wsmprovhost_any_child_process; rule_016_wsmprovhost_child_process; rule_017_winrm_repeated_processes,Covered (tested),019 validated: 1 detection via Chainsaw v2.17.1; 016 and 017 written not validated
 T1555.005,Credential Access,Password Managers,rule_018_keepass_remote_thread,Covered (tested),2 detections via Chainsaw v2.17.1 on KeeThief EVTX
 T1566.001,Initial Access,Spearphishing Attachment,None,Not covered,No rule
 T1071.001,Command and Control,Web Protocols,None,Not covered,No rule

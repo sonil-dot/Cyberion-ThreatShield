@@ -1,0 +1,19 @@
+title: Process Launched by WinRM Host (wsmprovhost.exe)
+id: bc412b9d-c8d0-4fff-9342-e6bf0f13184b
+status: experimental
+description: Detects any process created by wsmprovhost.exe, the host process for PowerShell remoting and WinRM. A command run this way indicates remote execution on the host.
+references:
+    - https://attack.mitre.org/techniques/T1021/006/
+tags:
+    - attack.lateral-movement
+    - attack.t1021.006
+logsource:
+    product: windows
+    category: process_creation
+detection:
+    selection:
+        ParentImage|endswith: '\wsmprovhost.exe'
+    condition: selection
+falsepositives:
+    - Legitimate remote administration, automation and monitoring tools using PowerShell remoting
+level: medium
