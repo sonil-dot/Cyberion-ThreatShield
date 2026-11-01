@@ -1,0 +1,22 @@
+title: Remote Thread Created in KeePass Process (tuned - DbgUiRemoteBreakin only)
+id: 9a1dc620-8e35-41b4-901b-4d471668a124
+status: experimental
+description: Tuned variant of rule 018 that only alerts when the thread starts at DbgUiRemoteBreakin.
+references:
+    - https://attack.mitre.org/techniques/T1555/005/
+tags:
+    - attack.credential-access
+    - attack.t1555.005
+logsource:
+    product: windows
+    category: create_remote_thread
+detection:
+    selection:
+        TargetImage|endswith: '\KeePass.exe'
+        StartFunction|contains: 'DbgUiRemoteBreakin'
+    filter_self:
+        SourceImage|endswith: '\KeePass.exe'
+    condition: selection and not filter_self
+falsepositives:
+    - Debuggers attaching to KeePass
+level: high
