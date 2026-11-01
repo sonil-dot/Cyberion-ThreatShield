@@ -15,3 +15,4 @@ Unmapped,Unmapped,Fodhelper Child Process,rule_013_fodhelper_child_process,Pendi
 Unmapped,Unmapped,SSH Key Discovery,rule_014_ssh_key_discovery,Pending,Technique mapping not assigned
 Unmapped,Unmapped,Regsvr32 Scriptlet Execution,rule_015_regsvr32_scriptlet,Pending,Technique mapping not assigned
 Unmapped,Unmapped,WinRM Child Process,rule_016_wsmprovhost_child_process,Pending,Functional testing pending
+T1555.005,Credential Access,Password Managers,rule_018_keepass_remote_thread,Covered (tested),2 detections via Chainsaw v2.17.1 on KeeThief EVTX
