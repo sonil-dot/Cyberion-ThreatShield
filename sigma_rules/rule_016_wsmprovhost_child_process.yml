@@ -4,6 +4,11 @@ name: rule_016_wsmprovhost_child_process
 id: 7b2d4e6a-8c10-4f31-9a52-6d8e0b1c3f75
 status: experimental
 description: Detects command interpreters launched by the Windows Remote Management host process for investigation.
+references:
+    - https://attack.mitre.org/techniques/T1021/006/
+tags:
+    - attack.lateral-movement
+    - attack.t1021.006
 logsource:
     product: windows
     category: process_creation
