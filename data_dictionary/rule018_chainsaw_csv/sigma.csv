@@ -1,0 +1,27 @@
+timestamp,detections,path,count,Event.System.Provider,Event ID,Record ID,Computer,Event Data
+2019-04-27T18:55:04.710608+00:00,Remote Thread Created in KeePass Process,C:\Cyberion-ThreatShield\datasets\CA_keepass_KeeThief_Get-KeePassDatabaseKey.evtx,1,Microsoft-Windows-Sysmon,8,7070,IEWIN7,"TargetProcessId: 2364
+NewThreadId: 3796
+SourceImage: C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe
+RuleName: ''
+TargetProcessGuid: 365ABB72-A201-5CC4-0000-00104F500800
+SourceProcessGuid: 365ABB72-A512-5CC4-0000-0010C05E1B00
+StartFunction: DbgUiRemoteBreakin
+SourceProcessId: 2856
+StartAddress: '0x76FAEC4B'
+StartModule: C:\Windows\SYSTEM32\ntdll.dll
+UtcTime: 2019-04-27 18:55:04.710
+TargetImage: C:\Program Files\KeePass Password Safe 2\KeePass.exe
+"
+2019-04-27T18:55:04.980137+00:00,Remote Thread Created in KeePass Process,C:\Cyberion-ThreatShield\datasets\CA_keepass_KeeThief_Get-KeePassDatabaseKey.evtx,1,Microsoft-Windows-Sysmon,8,7071,IEWIN7,"TargetProcessId: 2364
+NewThreadId: 1384
+SourceImage: C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe
+RuleName: ''
+TargetProcessGuid: 365ABB72-A201-5CC4-0000-00104F500800
+SourceProcessGuid: 365ABB72-A512-5CC4-0000-0010C05E1B00
+StartFunction: ''
+SourceProcessId: 2856
+StartAddress: '0x06160000'
+StartModule: ''
+UtcTime: 2019-04-27 18:55:04.980
+TargetImage: C:\Program Files\KeePass Password Safe 2\KeePass.exe
+"
