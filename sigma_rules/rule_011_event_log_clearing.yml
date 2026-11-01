@@ -4,6 +4,11 @@ status: experimental
 description: Detects wevtutil.exe commands using common operations to clear Windows event logs.
 author: Cyberion ThreatShield
 date: 2026/10/23
+references:
+    - https://attack.mitre.org/techniques/T1070/001/
+tags:
+    - attack.defense-evasion
+    - attack.t1070.001
 logsource:
     product: windows
     category: process_creation

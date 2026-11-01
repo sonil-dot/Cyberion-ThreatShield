@@ -37,3 +37,6 @@ Test the rule against suitable, authorized process-creation telemetry containing
 
 ## Conclusion
 Rule 016 passed Sigma CLI validation. No matching events were found in the available datasets. Further testing is required to assess detection effectiveness.
+
+## Chainsaw result
+0 detections on 0 documents (Chainsaw v2.17.1). The dataset LM_PowershellRemoting_sysmon_1_wsmprovhost.evtx contains one Sysmon EID 1 event (HOSTNAME.EXE, launched by the WinRM host). The rule targets cmd/powershell/pwsh children, so no match is expected. Status: written, not validated.

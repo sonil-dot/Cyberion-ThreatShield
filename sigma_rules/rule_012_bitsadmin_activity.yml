@@ -4,6 +4,11 @@ id: 3b8f1d62-5a94-4c70-9e21-7d6a2f805c43
 status: experimental
 description: Detects bitsadmin.exe commands using job creation or file-addition options, which may indicate BITS transfer activity requiring investigation.
 date: 2026/10/23
+references:
+    - https://attack.mitre.org/techniques/T1197/
+tags:
+    - attack.persistence
+    - attack.t1197
 logsource:
     product: windows
     category: process_creation

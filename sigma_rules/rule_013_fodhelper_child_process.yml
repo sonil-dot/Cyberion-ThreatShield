@@ -5,6 +5,11 @@ status: experimental
 description: Detects cmd.exe or PowerShell launched by fodhelper.exe, a parent-child relationship that may indicate UAC bypass activity and requires contextual investigation.
 author: Cyberion ThreatShield
 date: 2026/10/23
+references:
+    - https://attack.mitre.org/techniques/T1548/002/
+tags:
+    - attack.privilege-escalation
+    - attack.t1548.002
 logsource:
     product: windows
     category: process_creation
