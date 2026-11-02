@@ -34,3 +34,12 @@ Test the rule against suitable, authorized scheduled-task creation telemetry and
 
 ## Conclusion
 Rule 006 passed Sigma CLI validation. No matching events were found in the three available datasets, so further testing is required to establish detection effectiveness.
+
+## Validation on public attack sample (Chainsaw v2.17.1)
+
+- Sample: rundll32_cmd_schtask.evtx (EVTX-ATTACK-SAMPLES, copied to datasets/extra/)
+- Command: chainsaw.exe --no-banner hunt datasets\extra\rundll32_cmd_schtask.evtx -s sigma_rules\rule_006_*.yml --mapping mappings\sigma-event-logs-all.yml --json
+- Result: 1 detection(s)
+- Event: 2020-10-23 21:57:36.627 UTC: schtasks /Create /f /XML ...sduchxll.tmp /TN DataUsageHandlers, parent cmd.exe
+- Evidence: data_dictionary/evidence_rule006_extra.json
+- Limitations: single public sample, no benign baseline, false-positive rate untested, not run in a live SIEM.

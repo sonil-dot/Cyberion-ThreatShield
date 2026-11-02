@@ -28,3 +28,12 @@ No events matched all the tested conditions: the image ending in `\netsh.exe`, a
 
 ## Limitations
 No matching example was found in the available
+
+## Validation on public attack sample (Chainsaw v2.17.1)
+
+- Sample: sysmon_13_rdp_settings_tampering.evtx (EVTX-ATTACK-SAMPLES, copied to datasets/extra/)
+- Command: chainsaw.exe --no-banner hunt datasets\extra\sysmon_13_rdp_settings_tampering.evtx -s sigma_rules\rule_010_*.yml --mapping mappings\sigma-event-logs-all.yml --json
+- Result: 1 detection(s)
+- Event: 2019-03-17 20:18:09.272 UTC: netsh advfirewall firewall add rule name="Remote Desktop" dir=in protocol=tcp localport=3389 profile=any action=allow, parent RDPWInst.exe
+- Evidence: data_dictionary/evidence_rule010_extra.json
+- Limitations: single public sample, no benign baseline, false-positive rate untested, not run in a live SIEM.

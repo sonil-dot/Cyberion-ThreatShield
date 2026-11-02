@@ -33,3 +33,13 @@ None of the reviewed process-creation events satisfied all Rule 005 conditions. 
 - Obtain suitable telemetry containing a controlled memory-dump test event.
 - Compare the event's image and command-line fields with the Sigma rule.
 - Investigate whether any matching activity is authorized debugging or incident response.
+
+
+## Validation on public attack sample (Chainsaw v2.17.1)
+
+- Sample: sysmon_10_1_memdump_comsvcs_minidump.evtx (EVTX-ATTACK-SAMPLES, copied to datasets/extra/)
+- Command: chainsaw.exe --no-banner hunt datasets\extra\sysmon_10_1_memdump_comsvcs_minidump.evtx -s sigma_rules\rule_005_*.yml --mapping mappings\sigma-event-logs-all.yml --json
+- Result: 1 detection(s)
+- Event: 2019-08-30 12:54:08.331 UTC: rundll32 C:\windows\system32\comsvcs.dll, MiniDump 4868 C:\Windows\System32\notepad.bin full, parent WmiPrvSE.exe
+- Evidence: data_dictionary/evidence_rule005_extra.json
+- Limitations: single public sample, no benign baseline, false-positive rate untested, not run in a live SIEM.

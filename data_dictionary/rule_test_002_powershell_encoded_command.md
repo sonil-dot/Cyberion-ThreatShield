@@ -35,3 +35,12 @@ The rule passed syntax validation, but its detection behaviour has not been conf
 - Review potential false positives from legitimate administrative scripts.
 
 Syntax validation alone does not establish detection effectiveness.
+
+## Validation on public attack sample (Chainsaw v2.17.1)
+
+- Sample: discovery_sysmon_1_iis_pwd_and_config_discovery_appcmd.evtx (EVTX-ATTACK-SAMPLES, copied to datasets/extra/)
+- Command: chainsaw.exe --no-banner hunt datasets\extra\discovery_sysmon_1_iis_pwd_and_config_discovery_appcmd.evtx -s sigma_rules\rule_002_*.yml --mapping mappings\sigma-event-logs-all.yml --json
+- Result: 1 detection(s)
+- Event: 2019-05-27 01:28:42.700 UTC: powershell.exe -nop -noni -enc (base64 payload), parent w3wp.exe (IIS worker process)
+- Evidence: data_dictionary/evidence_rule002_extra.json
+- Limitations: single public sample, no benign baseline, false-positive rate untested, not run in a live SIEM.

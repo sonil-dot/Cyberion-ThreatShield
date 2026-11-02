@@ -37,3 +37,13 @@ Test against suitable, authorized service-creation telemetry and validate the co
 
 ## Conclusion
 Rule 007 passed Sigma CLI validation. No matching events were found in the available datasets, so further testing is required to assess detection effectiveness.
+
+
+## Validation on public attack sample (Chainsaw v2.17.1)
+
+- Sample: PanacheSysmon_vs_AtomicRedTeam01.evtx (EVTX-ATTACK-SAMPLES, copied to datasets/extra/)
+- Command: chainsaw.exe --no-banner hunt datasets\extra\PanacheSysmon_vs_AtomicRedTeam01.evtx -s sigma_rules\rule_007_*.yml --mapping mappings\sigma-event-logs-all.yml --json
+- Result: 1 detection(s)
+- Event: 2019-07-19 14:44:08.181 UTC: sc.exe create AtomicTestService binPath= C:\AtomicRedTeam\atomics\T1050\bin\AtomicService.exe, parent cmd.exe
+- Evidence: data_dictionary/evidence_rule007_extra.json
+- Limitations: single public sample, no benign baseline, false-positive rate untested, not run in a live SIEM.

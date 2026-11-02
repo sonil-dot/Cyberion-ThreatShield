@@ -12,7 +12,7 @@ Author: YOUR NAME HERE | Repo: https://github.com/sonil-dot/Cyberion-ThreatShiel
 - Two attack behaviours were detected in real recordings and fully investigated:
   1. A trusted Windows update program was abused to run a hidden program (case INC-001).
   2. A tool injected itself into a password manager to steal the master key (case INC-002). If this were a real client, every stored password would need to be reset.
-- Of 21 rules, **3 are proven against real data** and 2 correlation rules were validated by manual count. The others are written and syntactically valid but have not yet been tested on matching recordings, so we do not claim they work.
+- Of 21 rules, **12 are proven against real data** (3 on the engagement datasets, 9 more on public EVTX-ATTACK-SAMPLES files) and 2 correlation rules were validated by manual count. The other 7 are written and syntactically valid but have not been tested on a matching recording, so we do not claim they work.
 
 **Biggest risks (coverage gaps).** Phishing delivery, command-and-control traffic, data theft, and remote desktop abuse have no detection (matrix rows marked Not covered).
 
@@ -22,7 +22,7 @@ Author: YOUR NAME HERE | Repo: https://github.com/sonil-dot/Cyberion-ThreatShiel
 3. Adopt the incident playbooks so response quality does not depend on who is on shift.
 
 ## 2. Methodology
-- **Data:** public EVTX samples (EVTX-ATTACK-SAMPLES / Mordor-style datasets), 3 files in `datasets/`: KeeThief KeePass sample, wuauclt LOLBAS sample, WSMProvHost PowerShell-remoting sample. No live client data was used. Source: EVTX-ATTACK-SAMPLES, https://github.com/sbousseaden/EVTX-ATTACK-SAMPLES (confirm this matches where the files were downloaded).
+- **Data:** public EVTX samples (EVTX-ATTACK-SAMPLES / Mordor-style datasets), 3 files in `datasets/`: KeeThief KeePass sample, wuauclt LOLBAS sample, WSMProvHost PowerShell-remoting sample. Nine further public samples were copied to datasets/extra/ for additional rule validation. No live client data was used. Source: EVTX-ATTACK-SAMPLES, https://github.com/sbousseaden/EVTX-ATTACK-SAMPLES (confirm this matches where the files were downloaded).
 - **Rule authoring:** Sigma format; syntax validated with sigma-cli 3.1.0 (`sigma check sigma_rules`: 0 errors, 0 issues).
 - **Rule testing:** Chainsaw v2.17.1 with `mappings/sigma-event-logs-all.yml`. Command pattern:
   `chainsaw.exe --no-banner hunt <evtx> -s <rule.yml> --mapping .\mappings\sigma-event-logs-all.yml`
@@ -65,8 +65,8 @@ Author: YOUR NAME HERE | Repo: https://github.com/sonil-dot/Cyberion-ThreatShiel
 
 | Status | Rules |
 |---|---|
-| Validated on real data | 001 (2 detections), 018 (2 detections), 019 (1 detection), 019 (1 detection) |
-| Written, not validated | 002-017 (016 returned 0 detections on the only WinRM sample; the rest have no matching sample yet) |
+| Validated on real data | 001, 002, 004, 005, 006, 007, 010, 012, 013, 015, 018 and 019 (see data_dictionary/rule_test_*.md), 019 (1 detection) |
+| Written, not validated | 003, 008, 009, 011, 014, 016, 017 (no matching sample found, or Chainsaw cannot run the rule; 016 returned 0 detections on the WinRM sample) |
 | Correlation rule, tool validation unconfirmed | 017 (Chainsaw may not support Sigma correlation) |
 
 Per-rule detail: `data_dictionary/rule_test_*.md`. Severity and false-positive notes are in each rule file.
@@ -75,7 +75,7 @@ Correlation-style rules: 3 of the 3 required: 017 (not validated: it depends on 
 
 ## 5. ATT&CK Coverage
 See `coverage_matrix/attack_coverage_matrix.csv`: 22 techniques across 10 tactics (Initial Access, Execution, Persistence, Privilege Escalation, Stealth, Defense Impairment, Credential Access, Lateral Movement, Command and Control, Exfiltration).
-- Covered (tested): 3 (T1218, T1555.005, T1021.006) | Written, not validated: 14 | Not covered: 5
+- Covered (tested): 12 | Written, not validated: 5 | Not covered: 5
 - ATT&CK version note: sigma-cli 3.1.0 uses a newer ATT&CK release in which Defense Evasion is split into Stealth and Defense Impairment, and techniques such as T1562.001 are renumbered (T1685). Tags and IDs for rules 003, 010 and 011 follow the tool data. The 5 Not covered rows were not re-checked against that version.
 
 ## 6. Tuning Pass
@@ -109,7 +109,7 @@ Files: threat_hunts/hunt_001..003. correlation_001_winrm.txt is a supporting not
 `ioc_research/ioc_research_001_wuauclt.md`, `ioc_research_002_keepass.md`. Key IOCs from real evidence: `C:\ProgramData\Intel\helpa.dll` (path, wuauclt abuse); wuauclt command-line flag `/UpdateDeploymentProvider`; powershell.exe injecting threads into KeePass.exe. Operationalised via rules 001 and 018.
 
 ## 11. Limitations (disclosed honestly)
-- Only 3 of 21 rules validated by tool on real telemetry (2 more by manual count); the rest are untested.
+- 12 of 21 rules validated by tool on real telemetry (2 more by manual count); 7 remain untested.
 - Three small public datasets, single host each; no benign baseline, so false-positive rates are unmeasured.
 - Rule 017 correlation not confirmed by a tool.
 - Splunk queries generated but never executed.
@@ -217,3 +217,8 @@ Repo structure, commit history (`git log --oneline`), Chainsaw outputs in `data_
 **Figure 23: tuning18**
 
 ![Figure 23: tuning18](../screenshots/tuning18.png)
+
+**Figure 19: Rules 002, 004-007, 010, 012, 013, 015 and 018 validated on public EVTX-ATTACK-SAMPLES files**
+
+![Figure 19](../screenshots/19_extra_validation.png)
+
