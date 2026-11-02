@@ -57,14 +57,19 @@ The following Windows Sysmon event types and fields were important during the in
 
 Field: Image / CommandLine 
 Purpose:Identifies the program that was executed and its arguments. 
+
 Field: ParentImage / ParentCommandLine 
 Purpose:Shows which process started it. Useful for identifying suspicious parent-child relationships. 
+
 Field: User, LogonId, IntegrityLevel 
 Purpose:Provides information about the account and security context in which the process ran. 
+
 Field: ProcessGuid / ParentProcessGuid 
 Purpose: Helps connect related events and build a process timeline. 
+
 Field: Hashes 
 Purpose:Useful for identifying and researching suspicious files. 
+
 Field: OriginalFileName 
 Purpose: Helps identify executables that may have been renamed. 
 
@@ -74,12 +79,16 @@ Purpose: Helps identify executables that may have been renamed.
 
 Field: SourceImage / SourceProcessId 
 Purpose: Identifies the process initiating the remote thread. 
+
 Field: TargetImage / TargetProcessId 
-Purpose: Identifies the process receiving the thread. 
+Purpose: Identifies the process receiving the thread.
+
 Field: StartAddress 
 Purpose: Shows the memory address where the thread begins. 
+
 Field:StartModule / StartFunction 
-Purpose: Provides information about the module and function associated with the thread. 
+Purpose: Provides information about the module and function associated with the thread.
+
 Field: NewThreadId 
 Purpose: Identifies the newly created thread. 
 
@@ -89,12 +98,16 @@ Purpose: Identifies the newly created thread.
 
 Field: Image / ProcessId 
 Purpose: Identifies the process loading a module. 
+
 Field: ImageLoaded 
 Purpose: Shows the path of the DLL being loaded. 
+
 Field:  Signed / SignatureStatus 
 Purpose: Provides information about the digital signature of the loaded file. 
+
 Field:  Hashes 
 Purpose: Helps identify and research loaded DLLs. 
+
 Field:  ProcessGuid 
 Purpose: Helps connect the DLL load event with other events from the same process. 
 
@@ -110,8 +123,10 @@ Rule testing results
 
 Testing status : Successfully validated using event log data 
 Rule numbers: 001, 002, 004, 005, 006, 007, 010, 012, 013, 015, 018, 019 
+
 Testing status: Created but not successfully validated 
 Rule numbers: 003, 008, 009, 011, 014, 016, 017 
+
 Testing status: Correlation rules checked manually 
 Rule numbers: 020, 021 
 
@@ -185,9 +200,11 @@ Three threat hunts were conducted to investigate suspicious activity in the avai
 Hunt: Hunt 001 – WUauclt unsigned DLL load 
 Technique investigated: T1218 
 Result: Suspicious activity confirmed. 
+
 Hunt: Hunt 002 – PowerShell injection into KeePass 
 Technique investigated: T1055 / T1555.005 
-Result: Process injection confirmed, but credential theft was not proven by the logs. 
+Result: Process injection confirmed, but credential theft was not proven by the logs.
+
 Hunt: Hunt 003 – Generic CreateRemoteThread activity 
 Technique investigated: T1055 
 Result: Injection activity confirmed for the KeePass events. No other injection activity was identified in the reviewed data. 
