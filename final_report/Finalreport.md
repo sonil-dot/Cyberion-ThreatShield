@@ -1,224 +1,355 @@
-# Cyberion ThreatShield - Final Report
-Project CDL-DET-V2 | Detection Engineering & Threat Hunting Engagement
-Author: Sneha Philip | Repo: https://github.com/sonil-dot/Cyberion-ThreatShield
-
----
-
-## 1. Executive Summary (non-technical)
-
-**What we did.** We built a library of 21 detection rules that turn security logs into alerts, mapped them to the industry-standard MITRE ATT&CK framework, and tested them on real attack recordings.
-
-**What we found.**
-- Two attack behaviours were detected in real recordings and fully investigated:
-  1. A trusted Windows update program was abused to run a hidden program (case INC-001).
-  2. A tool injected itself into a password manager to steal the master key (case INC-002). If this were a real client, every stored password would need to be reset.
-- Of 21 rules, **12 are proven against real data** (3 on the engagement datasets, 9 more on public EVTX-ATTACK-SAMPLES files) and 2 correlation rules were validated by manual count. The other 7 are written and syntactically valid but have not been tested on a matching recording, so we do not claim they work.
-
-**Biggest risks (coverage gaps).** Phishing delivery, command-and-control traffic, data theft, and remote desktop abuse have no detection (matrix rows marked Not covered).
-
-**Recommendations.**
-1. Test the remaining 7 rules on matching attack samples before relying on them.
-2. Add detections for the uncovered areas above.
-3. Adopt the incident playbooks so response quality does not depend on who is on shift.
-
-## 2. Methodology
-- **Data:** public EVTX samples (EVTX-ATTACK-SAMPLES / Mordor-style datasets), 3 files in `datasets/`: KeeThief KeePass sample, wuauclt LOLBAS sample, WSMProvHost PowerShell-remoting sample. Nine further public samples were copied to datasets/extra/ for additional rule validation. No live client data was used. Source: EVTX-ATTACK-SAMPLES, https://github.com/sbousseaden/EVTX-ATTACK-SAMPLES (confirm this matches where the files were downloaded).
-- **Rule authoring:** Sigma format; syntax validated with sigma-cli 3.1.0 (`sigma check sigma_rules`: 0 errors, 0 issues).
-- **Rule testing:** Chainsaw v2.17.1 with `mappings/sigma-event-logs-all.yml`. Command pattern:
-  `chainsaw.exe --no-banner hunt <evtx> -s <rule.yml> --mapping .\mappings\sigma-event-logs-all.yml`
-- **Event inspection:** PowerShell Get-WinEvent, reading EventData from each event's XML.
-- **Timestamps:** all UTC. (Get-WinEvent displays local IST.)
-- **Version control:** Git/GitHub, commits after each work item.
-- **Splunk conversion:** SPL queries were generated with sigma-cli but **not executed** in a live Splunk.
-
-## 3. Data Dictionary
-### 3.1 Sysmon Event ID 1 - Process Creation
-| Field | Meaning for detection |
-|---|---|
-| Image / CommandLine | What ran and with which arguments; core of most rules |
-| ParentImage / ParentCommandLine | Who launched it; reveals LOLBin abuse (wuauclt parent) |
-| User, LogonId, IntegrityLevel | Whose context; Medium vs High shows elevation |
-| ProcessGuid / ParentProcessGuid | Stable IDs to link events into a timeline |
-| Hashes | IOC lookups |
-| OriginalFileName | Detects renamed binaries |
-
-### 3.2 Sysmon Event ID 8 - CreateRemoteThread
-| Field | Meaning for detection |
-|---|---|
-| SourceImage / SourceProcessId | The injector |
-| TargetImage / TargetProcessId | The victim process |
-| StartAddress | Where the thread begins |
-| StartModule / StartFunction | Empty values suggest unbacked (injected) code |
-| NewThreadId | Distinguishes multiple threads |
+Cyberion ThreatShield – Final Report
 
-### 3.3 Sysmon Event ID 7 - Image Load
-| Field | Meaning for detection |
-|---|---|
-| Image / ProcessId | The process that loaded the module |
-| ImageLoaded | Path of the DLL; unusual folders (ProgramData, Temp) are suspicious |
-| Signed / SignatureStatus | Unsigned DLLs inside signed system binaries indicate proxy execution |
-| Hashes | IOC lookup and DLL identification |
-| ProcessGuid | Links the load to later events from the same process instance |
+Project: CDL-DET-V2 – Detection Engineering & Threat Hunting Engagement  
+Author: Sneha Philip  
+GitHub Repository:** https://github.com/sonil-dot/Cyberion-ThreatShield
 
-## 4. Detection Rule Library
-21 rules in `sigma_rules/`, all pass `sigma check`. Results:
+1. Executive Summary
 
-| Status | Rules |
-|---|---|
-| Validated on real data | 001, 002, 004, 005, 006, 007, 010, 012, 013, 015, 018 and 019 (see data_dictionary/rule_test_*.md), 019 (1 detection) |
-| Written, not validated | 003, 008, 009, 011, 014, 016, 017 (no matching sample found, or Chainsaw cannot run the rule; 016 returned 0 detections on the WinRM sample) |
-| Correlation rule, tool validation unconfirmed | 017 (Chainsaw may not support Sigma correlation) |
+This project focused on developing and testing security detection rules using Windows event logs. The main objective was to identify suspicious activities, investigate attack behaviour, and understand how detection rules can help a security team respond to potential threats.
 
-Per-rule detail: `data_dictionary/rule_test_*.md`. Severity and false-positive notes are in each rule file.
+A total of 21 Sigma detection rules were developed and mapped to the MITRE ATT&CK framework. These rules were tested using public Windows event log samples and attack recordings.
 
-Correlation-style rules: 3 of the 3 required: 017 (not validated: it depends on rule 016, which had 0 detections on the sample), 020 and 021 (manually validated by replicating the logic in PowerShell, since Chainsaw does not run Sigma correlation rules).
+During the investigation, two notable attack behaviours were identified:
 
-## 5. ATT&CK Coverage
-See `coverage_matrix/attack_coverage_matrix.csv`: 22 techniques across 10 tactics (Initial Access, Execution, Persistence, Privilege Escalation, Stealth, Defense Impairment, Credential Access, Lateral Movement, Command and Control, Exfiltration).
-- Covered (tested): 12 | Written, not validated: 5 | Not covered: 5
-- ATT&CK version note: sigma-cli 3.1.0 uses a newer ATT&CK release in which Defense Evasion is split into Stealth and Defense Impairment, and techniques such as T1562.001 are renumbered (T1685). Tags and IDs for rules 003, 010 and 011 follow the tool data. The 5 Not covered rows were not re-checked against that version.
+1. A legitimate Windows update utility was misused to execute a suspicious DLL (Incident INC-001).
+2. A process injection technique was observed involving KeePass, a password manager (Incident INC-002). The logs confirmed the injection activity, although actual theft of the master password was not established.
 
-## 6. Tuning Pass
-**Rule 018 (KeePass remote thread).**
-- Observed: the two real events differ. Record 7070 starts at ntdll.dll!DbgUiRemoteBreakin; record 7071 starts at an unbacked address with no module or function.
-- Candidate tuning: add `StartFunction|contains: 'DbgUiRemoteBreakin'`.
-- Result: Chainsaw returned 1 detection (record 7070). Record 7071 was not detected.
-- Trade-off: fewer alerts but a false negative on the injected-code variant. Decision: keep the broader rule.
+Out of the 21 rules, 12 were successfully tested against real event log data using Chainsaw. Two additional correlation rules were checked manually using PowerShell. The remaining seven rules were created and passed syntax validation but could not be fully tested because suitable matching event samples were unavailable.
 
-**Tuning pass 2 (rules 016 and 019).** Rule 016 (cmd, powershell or pwsh child of wsmprovhost.exe) gave 0 detections on the WSMProvHost sample because the child process was HOSTNAME.EXE. Rule 019 (any child of wsmprovhost.exe) gave 1 detection. Trade-off: rule 019 is noisier where PowerShell remoting is used for administration and will need an allow-list.
+The project also identified areas where detection coverage could be improved, particularly phishing, command-and-control activity, data exfiltration, and remote desktop abuse.
 
-**Tuning pass 3 (rule 001).** The tuned variant, which requires UpdateDeploymentProvider in the parent command line, kept both detections (2 vs 2). No false positive was observed in this dataset, so the precision gain is by design and not measured on benign traffic. Full details: `tuning/tuning_report.md`.
+Based on the findings, the main recommendations are to test the remaining rules with suitable datasets, improve coverage of the identified gaps, and use documented incident response playbooks when handling security alerts.
 
-## 7. Threat Hunts
-| Hunt | Technique | Conclusion |
-|---|---|---|
-| 001 wuauclt unsigned DLL load | T1218 | Confirmed |
-| 002 PowerShell injection into KeePass | T1055 / T1555.005 | Confirmed as injection; credential theft not proven by logs |
-| 003 generic CreateRemoteThread | T1055 (no generic rule) | Confirmed for the KeePass pair only; no other injection found |
+ 2. Methodology
 
-Files: threat_hunts/hunt_001..003. correlation_001_winrm.txt is a supporting note. Hunt 003 satisfies the requirement for a hunt on a technique without an existing rule.
+The project was completed using publicly available Windows event log samples and a combination of security analysis tools.
 
-## 8. Incident Case Reports
-- INC-001: `incident_reports/incident_001_case_report_wuauclt.md` (True Positive)
-- INC-002: `incident_reports/incident_002_case_report_keepass.md` (True Positive)
+Data collection: Three primary datasets were used: a KeeThief KeePass sample, a WUauclt LOLBAS sample, and a WSMProvHost PowerShell Remoting sample. Nine additional public samples were also used for further rule testing. No live client data was involved.
 
-## 9. IR Playbooks
-`playbooks/playbook_001..003`: process injection, remote execution, credential compromise.
+Dataset source: EVTX-ATTACK-SAMPLES – https://github.com/sbousseaden/EVTX-ATTACK-SAMPLES
 
-## 10. IOC Research
-`ioc_research/ioc_research_001_wuauclt.md`, `ioc_research_002_keepass.md`. Key IOCs from real evidence: `C:\ProgramData\Intel\helpa.dll` (path, wuauclt abuse); wuauclt command-line flag `/UpdateDeploymentProvider`; powershell.exe injecting threads into KeePass.exe. Operationalised via rules 001 and 018.
+Detection rule development: Sigma was used to write the detection rules. The rules were checked using Sigma CLI version 3.1.0.
 
-## 11. Limitations (disclosed honestly)
-- 12 of 21 rules validated by tool on real telemetry (2 more by manual count); 7 remain untested.
-- Three small public datasets, single host each; no benign baseline, so false-positive rates are unmeasured.
-- Rule 017 correlation not confirmed by a tool.
-- Splunk queries generated but never executed.
-- Some ATT&CK IDs need manual verification.
+Rule testing: Chainsaw v2.17.1 was used to search the event logs against the Sigma rules, with the sigma-event-logs-all.yml mapping file.
 
-## 12. Recommendations
-1. Validate the remaining 7 rules (003, 008, 009, 011, 014, 016, 017) against matching samples.
-2. Cover phishing, C2, exfiltration and RDP.
-3. Run a benign-baseline test before deploying any rule at scale.
-4. Roll out the playbooks to all shifts.
+Example command:
 
-## Appendix
-Repo structure, commit history (`git log --oneline`), Chainsaw outputs in `data_dictionary/`.
+powershell
+chainsaw.exe --no-banner hunt <evtx> -s <rule.yml> --mapping .\mappings\sigma-event-logs-all.yml
 
-## Appendix B: Evidence Screenshots
 
-**Figure 1: (1)rule18_chainsaw**
+Event investigation: PowerShell Get-WinEvent was used to inspect individual Windows events and their XML EventData fields.
 
-![Figure 1: (1)rule18_chainsaw](../screenshots/(1)rule18_chainsaw.png)
+Timestamp handling: Event timestamps were recorded in UTC. PowerShell Get-WinEvent displays timestamps in local Indian Standard Time.
 
-**Figure 2: (1)tuning_01**
+Version control: Git and GitHub were used to maintain the project files and track changes through commits.
 
-![Figure 2: (1)tuning_01](../screenshots/(1)tuning_01.png)
+Splunk conversion: Sigma CLI was used to generate Splunk search queries. These queries were not tested in a live Splunk environment.
 
-**Figure 3: (2)rule01_chainsaw**
+3. Data Dictionary
 
-![Figure 3: (2)rule01_chainsaw](../screenshots/(2)rule01_chainsaw.png)
+The following Windows Sysmon event types and fields were important during the investigation.
 
-**Figure 4: (2)rule18_chainsaw**
+3.1 Sysmon Event ID 1 – Process Creation
 
-![Figure 4: (2)rule18_chainsaw](../screenshots/(2)rule18_chainsaw.png)
+| Field | Purpose |
 
-**Figure 5: (2)rule19_chainsaw**
+| Image / CommandLine | Identifies the program that was executed and its arguments. 
+| ParentImage / ParentCommandLine | Shows which process started it. Useful for identifying suspicious parent-child relationships. 
+| User, LogonId, IntegrityLevel | Provides information about the account and security context in which the process ran. 
+| ProcessGuid / ParentProcessGuid | Helps connect related events and build a process timeline. 
+| Hashes | Useful for identifying and researching suspicious files. 
+| OriginalFileName | Helps identify executables that may have been renamed. 
 
-![Figure 5: (2)rule19_chainsaw](../screenshots/(2)rule19_chainsaw.png)
+3.2 Sysmon Event ID 8 – CreateRemoteThread
 
-**Figure 6: (2)tuning_01**
+| Field | Purpose |
 
-![Figure 6: (2)tuning_01](../screenshots/(2)tuning_01.png)
+| SourceImage / SourceProcessId | Identifies the process initiating the remote thread. 
+| TargetImage / TargetProcessId | Identifies the process receiving the thread. 
+| StartAddress | Shows the memory address where the thread begins. 
+| StartModule / StartFunction | Provides information about the module and function associated with the thread. 
+| NewThreadId | Identifies the newly created thread. 
 
-**Figure 7: (3)rule01_chainsaw**
+3.3 Sysmon Event ID 7 – Image Load
 
-![Figure 7: (3)rule01_chainsaw](../screenshots/(3)rule01_chainsaw.png)
+| Field | Purpose |
 
-**Figure 8: (3)rule18_chainsaw**
+| Image / ProcessId | Identifies the process loading a module. 
+| ImageLoaded | Shows the path of the DLL being loaded. 
+| Signed / SignatureStatus | Provides information about the digital signature of the loaded file. 
+| Hashes | Helps identify and research loaded DLLs. 
+| ProcessGuid | Helps connect the DLL load event with other events from the same process. 
 
-![Figure 8: (3)rule18_chainsaw](../screenshots/(3)rule18_chainsaw.png)
+4. Detection Rule Library
 
-**Figure 9: attack_coverage_matrixexcel**
+A total of 21 Sigma rules were developed and stored in the sigma_rules directory. All rules passed the Sigma CLI syntax check.
 
-![Figure 9: attack_coverage_matrixexcel](../screenshots/attack_coverage_matrixexcel.png)
+The rules were tested using the available event log samples. Their results are documented in individual reports under data_dictionary.
 
-**Figure 10: Datasets**
+Rule testing results
 
-![Figure 10: Datasets](../screenshots/Datasets.png)
+| Testing status | Rule numbers |
 
-**Figure 11: Deliverables**
+| Successfully validated using event log data | 001, 002, 004, 005, 006, 007, 010, 012, 013, 015, 018, 019 
+| Created but not successfully validated | 003, 008, 009, 011, 014, 016, 017 
+| Correlation rules checked manually | 020, 021 
 
-![Figure 11: Deliverables](../screenshots/Deliverables.png)
+Rule 001 identified two suspicious events involving WUauclt. Rule 018 was tested against the KeePass process injection sample. Rule 019 identified a child process launched by WSMProvHost, while the more restrictive Rule 016 did not match that particular sample.
 
-**Figure 12: eid7_helpa_dll**
+Three correlation-style rules were included: 017, 020, and 021. Rules 020 and 021 were checked by reproducing their correlation logic in PowerShell because Chainsaw did not provide the required Sigma correlation testing. Rule 017 still requires further validation.
 
-![Figure 12: eid7_helpa_dll](../screenshots/eid7_helpa_dll.png)
+The individual test reports contain the rule objectives, test results, and observations.
 
-**Figure 13: github_repo**
+5. MITRE ATT&CK Coverage
 
-![Figure 13: github_repo](../screenshots/github_repo.png)
+The detection rules were mapped to the MITRE ATT&CK framework to understand which attack techniques were covered by the project.
 
-**Figure 14: repo_structure**
+The coverage matrix is available at:
 
-![Figure 14: repo_structure](../screenshots/repo_structure.png)
+coverage_matrix/attack_coverage_matrix.csv
 
-**Figure 15: rule_020_corr_keepass_multiple_threads**
+The matrix includes 22 techniques across 10 tactics, including Initial Access, Execution, Persistence, Privilege Escalation, Stealth, Defense Impairment, Credential Access, Lateral Movement, Command and Control, and Exfiltration.
 
-![Figure 15: rule_020_corr_keepass_multiple_threads](../screenshots/rule_020_corr_keepass_multiple_threads.png)
+The current coverage is:
 
-**Figure 16: rule_021_corr_wuauclt_multiple_cmd**
+- 12 techniques covered by tested rules.
+- 5 techniques represented by rules that have not yet been validated.
+- 5 techniques currently not covered by the detection library.
 
-![Figure 16: rule_021_corr_wuauclt_multiple_cmd](../screenshots/rule_021_corr_wuauclt_multiple_cmd.png)
+The ATT&CK technique identifiers and tags were based on the data available through Sigma CLI 3.1.0. Some identifiers may differ from older ATT&CK versions, so manual verification is still required. The five uncovered entries have not yet been rechecked against the same ATT&CK version.
 
-**Figure 17: rule_tags**
+6. Detection Rule Tuning
 
-![Figure 17: rule_tags](../screenshots/rule_tags.png)
+During testing, some rules were adjusted to understand how changes in detection conditions affect the results.
 
-**Figure 18: rule01_chainsaw**
+6.1 Rule 018 – KeePass Remote Thread
 
-![Figure 18: rule01_chainsaw](../screenshots/rule01_chainsaw.png)
+The KeePass investigation identified two CreateRemoteThread events, with different thread start information.
 
-**Figure 19: rule16_no_match**
+- Record 7070 started at ntdll.dll!DbgUiRemoteBreakin.
+- Record 7071 started at an unbacked memory address, with no module or function information.
 
-![Figure 19: rule16_no_match](../screenshots/rule16_no_match.png)
+A narrower detection condition was tested using StartFunction containing DbgUiRemoteBreakin.
 
-**Figure 20: rule18_raw_eid8**
+Chainsaw then returned one detection, corresponding to record 7070. Record 7071 was no longer detected.
 
-![Figure 20: rule18_raw_eid8](../screenshots/rule18_raw_eid8.png)
+Although the narrower condition reduced the number of alerts, it also missed the event involving the unbacked memory address. For this reason, the broader detection rule was retained.
 
-**Figure 21: rule19_chainsaw**
+6.2 Rules 016 and 019 – WSMProvHost Activity
 
-![Figure 21: rule19_chainsaw](../screenshots/rule19_chainsaw.png)
+Rule 016 was designed to identify command interpreters such as cmd.exe, powershell.exe, and pwsh.exe launched by wsmprovhost.exe.
 
-**Figure 22: sigma_check**
+However, it returned zero detections in the available WSMProvHost sample because the child process was HOSTNAME.EXE.
 
-![Figure 22: sigma_check](../screenshots/sigma_check.png)
+Rule 019 used a broader condition that looked for any child process launched by wsmprovhost.exe. It returned one detection.
 
-**Figure 23: tuning18**
+The broader rule is more likely to identify different types of suspicious child processes, but it may also generate alerts during legitimate PowerShell remoting and administrative activity. An allow-list and additional tuning would therefore be needed.
 
-![Figure 23: tuning18](../screenshots/tuning18.png)
+6.3 Rule 001 – WUauclt
 
-**Figure 19: Rules 002, 004-007, 010, 012, 013, 015 and 018 validated on public EVTX-ATTACK-SAMPLES files**
+A tuned version of Rule 001 was tested by adding a requirement for UpdateDeploymentProvider in the parent command line.
 
-![Figure 19](../screenshots/extra_validation.png)
+The tuned rule retained both detections, giving the same result as the original rule: two detections out of two observed events.
 
+No false positives were observed in this dataset. However, since benign activity was not tested, the actual false-positive rate cannot be determined.
+
+More details are available in tuning/tuning_report.md.
+
+7. Threat Hunts
+
+Three threat hunts were conducted to investigate suspicious activity in the available event logs.
+
+| Hunt | Technique investigated | Result 
+
+| Hunt 001 – WUauclt unsigned DLL load | T1218 | Suspicious activity confirmed. 
+| Hunt 002 – PowerShell injection into KeePass | T1055 / T1555.005 | Process injection confirmed, but credential theft was not proven by the logs. 
+| Hunt 003 – Generic CreateRemoteThread activity | T1055 | Injection activity confirmed for the KeePass events. No other injection activity was identified in the reviewed data. 
+
+The hunt documentation is available under threat_hunts, in the hunt_001 to hunt_003 files.
+
+A separate correlation_001_winrm.txt file contains supporting notes.
+
+Hunt 003 was also useful because it investigated a technique without relying on an existing dedicated detection rule.
+
+8. Incident Case Reports
+
+Two incident reports were prepared based on the suspicious activities identified during the investigation.
+
+INC-001 – WUauclt Abuse
+
+File: incident_reports/incident_001_case_report_wuauclt.md
+
+This case involved the misuse of a legitimate Windows update utility to execute a suspicious DLL. The observed activity was classified as a True Positive.
+
+INC-002 – KeePass Process Injection
+
+File: incident_reports/incident_002_case_report_keepass.md
+
+This case involved process injection activity targeting KeePass. The injection behaviour was confirmed from the event logs and classified as a True Positive. Actual credential theft was not independently established.
+
+9. Incident Response Playbooks
+
+Three incident response playbooks were prepared to provide guidance for handling different types of security incidents.
+
+The playbooks cover:
+
+1. Process injection.
+2. Remote execution.
+3. Credential compromise.
+
+They are available in the playbooks directory as playbook_001 to playbook_003.
+
+The purpose of these documents is to provide a consistent approach to investigating alerts, collecting evidence, and deciding on suitable response actions.
+
+10. IOC Research
+
+IOC research was carried out for the suspicious WUauclt and KeePass activities.
+
+The research documents are:
+
+- ioc_research/ioc_research_001_wuauclt.md
+- ioc_research/ioc_research_002_keepass.md
+
+Some of the important indicators observed during the investigation included:
+
+- C:\ProgramData\Intel\helpa.dll – suspicious DLL path associated with the WUauclt activity.
+- /UpdateDeploymentProvider – command-line argument observed during the WUauclt investigation.
+- powershell.exe interacting with KeePass.exe through process injection activity.
+
+These observations were used to support the investigation and the development of detection rules 001 and 018.
+
+11. Limitations
+
+There were a few limitations during the project that affected the extent of testing and validation.
+
+- Only a small number of public Windows event log datasets were available for testing.
+- The datasets mainly represented suspicious activity and did not provide a sufficient benign baseline for measuring false positives.
+- Seven rules could not be validated against matching attack samples.
+- Rule 017 correlation behaviour was not fully confirmed using a detection tool.
+- The two additional correlation rules were checked manually using PowerShell rather than through a live SIEM.
+- Splunk queries were generated but not executed in a live Splunk environment.
+- Some MITRE ATT&CK technique identifiers require further verification.
+
+These limitations mean that the detection rules should be treated as project-tested detection content rather than production-ready rules.
+
+12. Recommendations
+
+Based on the work completed, the following improvements are recommended:
+
+1. Test the remaining seven rules using suitable Windows attack samples.
+2. Develop additional detections for phishing, command-and-control activity, data exfiltration, and remote desktop abuse.
+3. Test the rules against normal administrative activity to identify possible false positives.
+4. Validate the correlation rules using a correlation-capable detection platform.
+5. Test the generated Splunk queries in a live or test Splunk environment.
+6. Use the incident response playbooks as a reference when investigating similar alerts.
+7. Review the MITRE ATT&CK mappings and update the coverage matrix where necessary.
+
+Appendix A – Project Repository
+
+The project files, Sigma rules, datasets, test reports, investigation notes, and supporting documentation are maintained in the GitHub repository:
+
+https://github.com/sonil-dot/Cyberion-ThreatShield
+
+The Git commit history is available through the repository and records the changes made during development.
+
+Appendix B – Evidence Screenshots
+
+The following screenshots provide supporting evidence of the work carried out during the project.
+
+Figure 1 – Rule 018 Chainsaw Output (1)
+
+![Figure 1 – Rule 018 Chainsaw Output](../screenshots/(1)rule18_chainsaw.png)
+
+Figure 2 – Tuning Test (1)
+
+![Figure 2 – Tuning Test (1)](../screenshots/(1)tuning_01.png)
+
+Figure 3 – Rule 001 Chainsaw Output (2)
+
+![Figure 3 – Rule 001 Chainsaw Output (2)](../screenshots/(2)rule01_chainsaw.png)
+
+Figure 4 – Rule 018 Chainsaw Output (2)
+
+![Figure 4 – Rule 018 Chainsaw Output (2)](../screenshots/(2)rule18_chainsaw.png)
+
+Figure 5 – Rule 019 Chainsaw Output
+
+![Figure 5 – Rule 019 Chainsaw Output](../screenshots/(2)rule19_chainsaw.png)
+
+Figure 6 – Tuning Test (2)
+
+![Figure 6 – Tuning Test (2)](../screenshots/(2)tuning_01.png)
+
+Figure 7 – Rule 001 Chainsaw Output (3)
+
+![Figure 7 – Rule 001 Chainsaw Output (3)](../screenshots/(3)rule01_chainsaw.png)
+
+Figure 8 – Rule 018 Chainsaw Output (3)
+
+![Figure 8 – Rule 018 Chainsaw Output (3)](../screenshots/(3)rule18_chainsaw.png)
+
+Figure 9 – MITRE ATT&CK Coverage Matrix
+
+![Figure 9 – MITRE ATT&CK Coverage Matrix](../screenshots/attack_coverage_matrixexcel.png)
+
+Figure 10 – Dataset Collection
+
+![Figure 10 – Dataset Collection](../screenshots/Datasets.png)
+
+Figure 11 – Project Deliverables
+
+![Figure 11 – Project Deliverables](../screenshots/Deliverables.png)
+
+Figure 12 – WUauclt DLL Evidence
+
+![Figure 12 – WUauclt DLL Evidence](../screenshots/eid7_helpa_dll.png)
+
+Figure 13 – GitHub Repository
+
+![Figure 13 – GitHub Repository](../screenshots/github_repo.png)
+
+Figure 14 – Project Folder Structure
+
+![Figure 14 – Project Folder Structure](../screenshots/repo_structure.png)
+
+Figure 15 – Rule 020 KeePass Correlation
+
+![Figure 15 – Rule 020 KeePass Correlation](../screenshots/rule_020_corr_keepass_multiple_threads.png)
+
+Figure 16 – Rule 021 WUauclt Correlation
+
+![Figure 16 – Rule 021 WUauclt Correlation](../screenshots/rule_021_corr_wuauclt_multiple_cmd.png)
+
+Figure 17 – Sigma Rule Tags
+
+![Figure 17 – Sigma Rule Tags](../screenshots/rule_tags.png)
+
+Figure 18 – Rule 001 Chainsaw Output
+
+![Figure 18 – Rule 001 Chainsaw Output](../screenshots/rule01_chainsaw.png)
+
+Figure 19 – Rule 016 No-Match Result
+
+![Figure 19 – Rule 016 No-Match Result](../screenshots/rule16_no_match.png)
+
+Figure 20 – Raw Sysmon Event ID 8
+
+![Figure 20 – Raw Sysmon Event ID 8](../screenshots/rule18_raw_eid8.png)
+
+Figure 21 – Rule 019 Chainsaw Output
+
+![Figure 21 – Rule 019 Chainsaw Output](../screenshots/rule19_chainsaw.png)
+
+Figure 22 – Sigma CLI Validation
+
+![Figure 22 – Sigma CLI Validation](../screenshots/sigma_check.png)
+
+Figure 23 – Rule 018 Tuning
+
+![Figure 23 – Rule 018 Tuning](../screenshots/tuning18.png)
+
+Additional Evidence – Validation of Rules 002, 004–007, 010, 012, 013, 015 and 018 using public EVTX samples
+
+![Additional Rule Validation](../screenshots/extra_validation.png)
