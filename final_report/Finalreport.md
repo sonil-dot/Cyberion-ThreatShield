@@ -1,6 +1,6 @@
 # Cyberion ThreatShield - Final Report
 Project CDL-DET-V2 | Detection Engineering & Threat Hunting Engagement
-Author: YOUR NAME HERE | Repo: https://github.com/sonil-dot/Cyberion-ThreatShield
+Author: Sneha Philip | Repo: https://github.com/sonil-dot/Cyberion-ThreatShield
 
 ---
 
@@ -220,5 +220,5 @@ Repo structure, commit history (`git log --oneline`), Chainsaw outputs in `data_
 
 **Figure 19: Rules 002, 004-007, 010, 012, 013, 015 and 018 validated on public EVTX-ATTACK-SAMPLES files**
 
-![Figure 19](../screenshots/19_extra_validation.png)
+![Figure 19](../screenshots/extra_validation.png)
 
