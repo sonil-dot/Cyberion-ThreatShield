@@ -2,7 +2,7 @@ Cyberion ThreatShield – Final Report
 
 Project: CDL-DET-V2 – Detection Engineering & Threat Hunting Engagement  
 Author: Sneha Philip  
-GitHub Repository:** https://github.com/sonil-dot/Cyberion-ThreatShield
+GitHub Repository: https://github.com/sonil-dot/Cyberion-ThreatShield
 
 1. Executive Summary
 
