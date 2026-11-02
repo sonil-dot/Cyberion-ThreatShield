@@ -1,23 +1,23 @@
 Technique ID,ATT&CK Tactic,Technique Name,Related Rule,Validation Status,Notes
-T1218,Defense Evasion,System Binary Proxy Execution,rule_001_suspicious_wuauclt,Covered (tested),2 detections via Chainsaw v2.17.1 on wuauclt EVTX
+T1218,Stealth,System Binary Proxy Execution,rule_001_suspicious_wuauclt; rule_021_corr_wuauclt_multiple_cmd,Covered (tested),001: 2 detections via Chainsaw v2.17.1. 021 correlation manually validated (count 2)
 T1059.001,Execution,PowerShell,rule_002_powershell_encoded_command,Written not validated,No matching sample tested
-T1562.001,Defense Evasion,Impair Defenses: Disable or Modify Tools,rule_003_defender_tampering,Written not validated,Verify ID on attack.mitre.org
-T1218.011,Defense Evasion,Rundll32,rule_004_suspicious_rundll32,Written not validated,No matching sample tested
+T1685,Defense Impairment,Disable or Modify Tools,rule_003_defender_tampering,Written not validated,ID from sigma-cli ATT&CK data
+T1218.011,Stealth,Rundll32,rule_004_suspicious_rundll32,Written not validated,No matching sample tested
 T1003.001,Credential Access,LSASS Memory,rule_005_comsvcs_minidump,Written not validated,No matching sample tested
 T1053.005,Persistence,Scheduled Task,rule_006_scheduled_task_creation,Written not validated,No matching sample tested
 T1543.003,Persistence,Windows Service,rule_007_service_creation,Written not validated,No matching sample tested
 T1136.001,Persistence,Create Account: Local,rule_008_local_account_creation,Written not validated,No matching sample tested
 T1569.002,Execution,Service Execution,rule_009_psexec_execution,Written not validated,No matching sample tested
-T1562.004,Defense Evasion,Disable or Modify System Firewall,rule_010_firewall_changes,Written not validated,Verify ID on attack.mitre.org
-T1070.001,Defense Evasion,Clear Windows Event Logs,rule_011_event_log_clearing,Written not validated,Verify ID on attack.mitre.org
-T1197,Persistence,BITS Jobs,rule_012_bitsadmin_activity,Written not validated,Verify ID on attack.mitre.org
-T1548.002,Privilege Escalation,Bypass User Account Control,rule_013_fodhelper_child_process,Written not validated,Verify ID on attack.mitre.org
-T1552.004,Credential Access,Private Keys,rule_014_ssh_key_discovery,Written not validated,Verify ID on attack.mitre.org
-T1218.010,Defense Evasion,Regsvr32,rule_015_regsvr32_scriptlet,Written not validated,Verify ID on attack.mitre.org
-T1021.006,Lateral Movement,Windows Remote Management,rule_019_wsmprovhost_any_child_process; rule_016_wsmprovhost_child_process; rule_017_winrm_repeated_processes,Covered (tested),019 validated: 1 detection via Chainsaw v2.17.1; 016 and 017 written not validated
-T1555.005,Credential Access,Password Managers,rule_018_keepass_remote_thread,Covered (tested),2 detections via Chainsaw v2.17.1 on KeeThief EVTX
-T1566.001,Initial Access,Spearphishing Attachment,None,Not covered,No rule
-T1071.001,Command and Control,Web Protocols,None,Not covered,No rule
-T1041,Exfiltration,Exfiltration Over C2 Channel,None,Not covered,No rule
-T1105,Command and Control,Ingress Tool Transfer,None,Not covered,No rule
-T1021.001,Lateral Movement,Remote Desktop Protocol,None,Not covered,No rule
+T1686.003,Defense Impairment,Windows Host Firewall,rule_010_firewall_changes,Written not validated,ID from sigma-cli ATT&CK data
+T1685.005,Defense Impairment,Clear Windows Event Logs,rule_011_event_log_clearing,Written not validated,ID from sigma-cli ATT&CK data
+T1197,Persistence,BITS Jobs,rule_012_bitsadmin_activity,Written not validated,No matching sample tested
+T1548.002,Privilege Escalation,Bypass User Account Control,rule_013_fodhelper_child_process,Written not validated,No matching sample tested
+T1552.004,Credential Access,Private Keys,rule_014_ssh_key_discovery,Written not validated,No matching sample tested
+T1218.010,Stealth,Regsvr32,rule_015_regsvr32_scriptlet,Written not validated,No matching sample tested
+T1021.006,Lateral Movement,Windows Remote Management,rule_019_wsmprovhost_any_child_process; rule_016_wsmprovhost_child_process; rule_017_winrm_repeated_processes,Covered (tested),019: 1 detection via Chainsaw v2.17.1. 016: 0 detections on sample. 017 correlation not validated
+T1555.005,Credential Access,Password Managers,rule_018_keepass_remote_thread; rule_020_corr_keepass_multiple_threads,Covered (tested),018: 2 detections via Chainsaw v2.17.1. 020 correlation manually validated (count 2)
+T1566.001,Initial Access,Spearphishing Attachment,None,Not covered,No rule; ID not re-checked against current ATT&CK
+T1071.001,Command and Control,Web Protocols,None,Not covered,No rule; ID not re-checked against current ATT&CK
+T1041,Exfiltration,Exfiltration Over C2 Channel,None,Not covered,No rule; ID not re-checked against current ATT&CK
+T1105,Command and Control,Ingress Tool Transfer,None,Not covered,No rule; ID not re-checked against current ATT&CK
+T1021.001,Lateral Movement,Remote Desktop Protocol,None,Not covered,No rule; ID not re-checked against current ATT&CK

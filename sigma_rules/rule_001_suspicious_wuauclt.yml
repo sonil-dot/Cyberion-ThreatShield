@@ -7,8 +7,8 @@ references:
 author: Cyberion ThreatShield
 date: 2026/10/23
 tags:
-    - attack.execution
-    - attack.t1218.003
+    - attack.stealth
+    - attack.t1218
 logsource:
     product: windows
     category: process_creation

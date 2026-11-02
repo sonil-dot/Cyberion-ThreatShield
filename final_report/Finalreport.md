@@ -69,9 +69,9 @@ Per-rule detail: `data_dictionary/rule_test_*.md`. Severity and false-positive n
 Correlation-style rules: 1 of the 3 required (017). `[FILL: add 2 more, e.g. encoded PowerShell followed by outbound connection; account creation followed by group add]`
 
 ## 5. ATT&CK Coverage
-See `coverage_matrix/attack_coverage_matrix.csv`: 22 techniques across 8 tactics (Initial Access, Execution, Persistence, Privilege Escalation, Defense Evasion, Credential Access, Lateral Movement, C2/Exfiltration).
-- Covered (tested): 2 | Written, not validated: 15 | Not covered: 5
-- Technique IDs marked "verify" were assigned from memory and must be checked against attack.mitre.org before submission.
+See `coverage_matrix/attack_coverage_matrix.csv`: 22 techniques across 10 tactics (Initial Access, Execution, Persistence, Privilege Escalation, Stealth, Defense Impairment, Credential Access, Lateral Movement, Command and Control, Exfiltration).
+- Covered (tested): 3 (T1218, T1555.005, T1021.006) | Written, not validated: 14 | Not covered: 5
+- ATT&CK version note: sigma-cli 3.1.0 uses a newer ATT&CK release in which Defense Evasion is split into Stealth and Defense Impairment, and techniques such as T1562.001 are renumbered (T1685). Tags and IDs for rules 003, 010 and 011 follow the tool data. The 5 Not covered rows were not re-checked against that version.
 
 ## 6. Tuning Pass
 **Rule 018 (KeePass remote thread).**

@@ -5,7 +5,7 @@ description: Correlation rule. Fires when one wuauclt.exe process spawns two or 
 references:
     - https://attack.mitre.org/techniques/T1218/
 tags:
-    - attack.defense-evasion
+    - attack.stealth
     - attack.t1218
 correlation:
     type: event_count

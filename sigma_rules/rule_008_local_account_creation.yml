@@ -5,6 +5,7 @@ status: experimental
 description: Detects net.exe or net1.exe commands containing user creation arguments that may indicate local account creation.
 date: 2026/10/23
 tags:
+    - attack.persistence
     - attack.t1136.001
 logsource:
     product: windows

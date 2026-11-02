@@ -5,6 +5,7 @@ description: Detects rundll32.exe process creation where the command line refere
 author: Cyberion ThreatShield
 date: 2026/10/23
 tags:
+    - attack.stealth
     - attack.t1218.011
 logsource:
     product: windows
