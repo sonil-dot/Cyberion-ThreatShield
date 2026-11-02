@@ -17,7 +17,7 @@ Author: YOUR NAME HERE | Repo: https://github.com/sonil-dot/Cyberion-ThreatShiel
 **Biggest risks (coverage gaps).** Phishing delivery, command-and-control traffic, data theft, and remote desktop abuse have no detection (matrix rows marked Not covered).
 
 **Recommendations.**
-1. Test the remaining 16 rules on matching attack samples before relying on them.
+1. Test the remaining 7 rules on matching attack samples before relying on them.
 2. Add detections for the uncovered areas above.
 3. Adopt the incident playbooks so response quality does not depend on who is on shift.
 
@@ -116,7 +116,7 @@ Files: threat_hunts/hunt_001..003. correlation_001_winrm.txt is a supporting not
 - Some ATT&CK IDs need manual verification.
 
 ## 12. Recommendations
-1. Validate rules 002-016 against matching EVTX-ATTACK-SAMPLES files.
+1. Validate the remaining 7 rules (003, 008, 009, 011, 014, 016, 017) against matching samples.
 2. Cover phishing, C2, exfiltration and RDP.
 3. Run a benign-baseline test before deploying any rule at scale.
 4. Roll out the playbooks to all shifts.
