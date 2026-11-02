@@ -1,30 +1,33 @@
-# Threat Hunt 001 — Suspicious Windows Update Utility Activity
+# Threat Hunt 001 - wuauclt.exe Loading an Unsigned DLL and Spawning cmd.exe
 
 ## 1. Hypothesis
-A process launched by wuauclt.exe with a command line referencing an unexpected DLL may indicate abuse of a legitimate Windows utility.
+A Windows Update utility (wuauclt.exe) loading a DLL from a non-standard folder and then spawning a command shell indicates LOLBin proxy execution (T1218).
 
-## 2. Objective
-Investigate whether the observed process relationship is isolated or accompanied by other suspicious activity.
+## 2. Data and method
+- Dataset: evasion_execution_imageload_wuauclt_lolbas.evtx (3 events: 2 x Sysmon EID 1, 1 x EID 7)
+- Method: read EventData fields via Get-WinEvent XML parsing for EID 1 and EID 7; run Sigma rule 001 with Chainsaw v2.17.1; compare ProcessGuid values across events.
+- Evidence: data_dictionary/evidence_sysmon_eid7_wuauclt.txt, rule001_chainsaw.json
 
-## 3. Data Source
-- Sysmon Event ID 1 — Process Creation
-- Related process and image-load events, if available
+## 3. Findings
+| UtcTime | Event | Detail |
+|---|---|---|
+| 2020-10-13 20:11:42.268 | EID 7 image load | wuauclt.exe (PID 1716) loaded C:\ProgramData\Intel\helpa.dll. Signed: false, SignatureStatus: Unavailable, file version metadata missing. SHA256 56C5AFF6AC04BDF86EDBC4F0D0F9581F250A4C97DD60FD1179F153AC20230920 |
+| 2020-10-13 20:11:42.277 | EID 1 records 2196442, 2196443 | Two cmd.exe (PIDs 6372, 7648) spawned by wuauclt.exe PID 1716. Parent command line: wuauclt.exe /UpdateDeploymentProvider C:\ProgramData\Intel\helpa.dll /RunHandlerComServer |
 
-## 4. Investigation Steps
-1. Identify process-creation events where ParentImage is wuauclt.exe.
-2. Review ParentCommandLine for unexpected DLL paths or unusual arguments.
-3. Examine child processes and their command lines.
-4. Search surrounding events for related image loads, network connections, persistence, or other suspicious activity.
-5. Record relevant event timestamps, process IDs, hashes, and findings.
+The ProcessGuid in the image load equals the ParentProcessGuid of both cmd.exe events, so one wuauclt instance loaded the DLL and then spawned both shells, 9 ms apart.
 
-## 5. Initial Evidence
-A Sysmon event from the evasion_execution_imageload_wuauclt_lolbas dataset records cmd.exe launched by wuauclt.exe. The parent command line references C:\ProgramData\Intel\helpa.dll.
+## 4. What the data cannot show (negative results)
+- No network (EID 3), file-creation (EID 11), registry or persistence events: the dataset has only 3 events.
+- No event shows how helpa.dll arrived on disk.
+- The DLL hash has not been looked up in a reputation service.
+- No benign baseline, so the false-positive rate is unmeasured.
 
-## 6. Preliminary Assessment
-The event is suspicious enough to investigate, but it does not independently confirm malicious activity.
+## 5. Conclusion
+**Confirmed.** wuauclt.exe loaded an unsigned DLL from C:\ProgramData\Intel and spawned command shells from it, consistent with T1218 proxy execution.
 
-## 7. Outcome
-Status: In progress — only the initial event has been examined. Additional telemetry must be reviewed before concluding whether the hypothesis is supported or rejected.
+## 6. Detection outcome
+- Rule 001: 2 detections. Tuned variant: 2 detections. Correlation rule 021: count 2 (manually validated).
+- Gap found: rules 001 and 021 depend on the cmd.exe child. Nothing detects the unsigned DLL load itself (EID 7). Recommended new rule: wuauclt.exe loading an unsigned DLL from outside System32.
 
-## 8. Recommended Follow-up
-Correlate the process-creation event with image-load and other available telemetry, then document false-positive considerations and any detection-rule tuning.
+## 7. Follow-up in a real environment
+Look up the SHA256, collect helpa.dll, find how it was written (EID 11), check network connections from PID 1716, hunt for wuauclt.exe with /UpdateDeploymentProvider across the estate.

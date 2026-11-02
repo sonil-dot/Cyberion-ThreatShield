@@ -1,18 +1,18 @@
 # Cyberion ThreatShield - Final Report
 Project CDL-DET-V2 | Detection Engineering & Threat Hunting Engagement
-Author: `[FILL: your name]` | Repo: https://github.com/sonil-dot/Cyberion-ThreatShield
+Author: YOUR NAME HERE | Repo: https://github.com/sonil-dot/Cyberion-ThreatShield
 
 ---
 
 ## 1. Executive Summary (non-technical)
 
-**What we did.** We built a library of 18 detection rules that turn security logs into alerts, mapped them to the industry-standard MITRE ATT&CK framework, and tested them on real attack recordings.
+**What we did.** We built a library of 21 detection rules that turn security logs into alerts, mapped them to the industry-standard MITRE ATT&CK framework, and tested them on real attack recordings.
 
 **What we found.**
 - Two attack behaviours were detected in real recordings and fully investigated:
   1. A trusted Windows update program was abused to run a hidden program (case INC-001).
   2. A tool injected itself into a password manager to steal the master key (case INC-002). If this were a real client, every stored password would need to be reset.
-- Of 18 rules, **2 are proven against real data** so far. The other 16 are written and syntactically valid but have not yet been tested on matching recordings, so we do not claim they work.
+- Of 21 rules, **3 are proven against real data** and 2 correlation rules were validated by manual count. The others are written and syntactically valid but have not yet been tested on matching recordings, so we do not claim they work.
 
 **Biggest risks (coverage gaps).** Phishing delivery, command-and-control traffic, data theft, and remote desktop abuse have no detection (matrix rows marked Not covered).
 
@@ -22,7 +22,7 @@ Author: `[FILL: your name]` | Repo: https://github.com/sonil-dot/Cyberion-Threat
 3. Adopt the incident playbooks so response quality does not depend on who is on shift.
 
 ## 2. Methodology
-- **Data:** public EVTX samples (EVTX-ATTACK-SAMPLES / Mordor-style datasets), 3 files in `datasets/`: KeeThief KeePass sample, wuauclt LOLBAS sample, WSMProvHost PowerShell-remoting sample. No live client data was used. `[FILL: exact download URLs]`
+- **Data:** public EVTX samples (EVTX-ATTACK-SAMPLES / Mordor-style datasets), 3 files in `datasets/`: KeeThief KeePass sample, wuauclt LOLBAS sample, WSMProvHost PowerShell-remoting sample. No live client data was used. Source: EVTX-ATTACK-SAMPLES, https://github.com/sbousseaden/EVTX-ATTACK-SAMPLES (confirm this matches where the files were downloaded).
 - **Rule authoring:** Sigma format; syntax validated with sigma-cli 3.1.0 (`sigma check sigma_rules`: 0 errors, 0 issues).
 - **Rule testing:** Chainsaw v2.17.1 with `mappings/sigma-event-logs-all.yml`. Command pattern:
   `chainsaw.exe --no-banner hunt <evtx> -s <rule.yml> --mapping .\mappings\sigma-event-logs-all.yml`
@@ -51,22 +51,27 @@ Author: `[FILL: your name]` | Repo: https://github.com/sonil-dot/Cyberion-Threat
 | StartModule / StartFunction | Empty values suggest unbacked (injected) code |
 | NewThreadId | Distinguishes multiple threads |
 
-### 3.3 Third source
-`[FILL: a third log source type from your datasets. Run this per dataset to list event IDs, then document one more (e.g. EID 7 image load or EID 10 process access):`
-`Get-WinEvent -Path .\datasets\<file>.evtx | Group-Object Id | Sort Count -Desc | ft Name,Count]`
+### 3.3 Sysmon Event ID 7 - Image Load
+| Field | Meaning for detection |
+|---|---|
+| Image / ProcessId | The process that loaded the module |
+| ImageLoaded | Path of the DLL; unusual folders (ProgramData, Temp) are suspicious |
+| Signed / SignatureStatus | Unsigned DLLs inside signed system binaries indicate proxy execution |
+| Hashes | IOC lookup and DLL identification |
+| ProcessGuid | Links the load to later events from the same process instance |
 
 ## 4. Detection Rule Library
-18 rules in `sigma_rules/`, all pass `sigma check`. Results:
+21 rules in `sigma_rules/`, all pass `sigma check`. Results:
 
 | Status | Rules |
 |---|---|
-| Validated on real data | 001 (2 detections), 018 (2 detections) |
-| Written, not validated | 002-016 (no matches in available datasets, or not yet run) |
+| Validated on real data | 001 (2 detections), 018 (2 detections), 019 (1 detection), 019 (1 detection) |
+| Written, not validated | 002-017 (016 returned 0 detections on the only WinRM sample; the rest have no matching sample yet) |
 | Correlation rule, tool validation unconfirmed | 017 (Chainsaw may not support Sigma correlation) |
 
 Per-rule detail: `data_dictionary/rule_test_*.md`. Severity and false-positive notes are in each rule file.
 
-Correlation-style rules: 1 of the 3 required (017). `[FILL: add 2 more, e.g. encoded PowerShell followed by outbound connection; account creation followed by group add]`
+Correlation-style rules: 3 of the 3 required: 017 (not validated: it depends on rule 016, which had 0 detections on the sample), 020 and 021 (manually validated by replicating the logic in PowerShell, since Chainsaw does not run Sigma correlation rules).
 
 ## 5. ATT&CK Coverage
 See `coverage_matrix/attack_coverage_matrix.csv`: 22 techniques across 10 tactics (Initial Access, Execution, Persistence, Privilege Escalation, Stealth, Defense Impairment, Credential Access, Lateral Movement, Command and Control, Exfiltration).
@@ -77,13 +82,21 @@ See `coverage_matrix/attack_coverage_matrix.csv`: 22 techniques across 10 tactic
 **Rule 018 (KeePass remote thread).**
 - Observed: the two real events differ. Record 7070 starts at ntdll.dll!DbgUiRemoteBreakin; record 7071 starts at an unbacked address with no module or function.
 - Candidate tuning: add `StartFunction|contains: 'DbgUiRemoteBreakin'`.
-- Result: only record 7070 would match; 7071 would be missed. `[FILL: run the tuned rule in Chainsaw and paste the real count]`
+- Result: Chainsaw returned 1 detection (record 7070). Record 7071 was not detected.
 - Trade-off: fewer alerts but a false negative on the injected-code variant. Decision: keep the broader rule.
 
-`[FILL: two more tuning passes. Rule 001: restrict to ParentCommandLine containing UpdateDeploymentProvider and re-run. A third rule once more samples are tested.]`
+**Tuning pass 2 (rules 016 and 019).** Rule 016 (cmd, powershell or pwsh child of wsmprovhost.exe) gave 0 detections on the WSMProvHost sample because the child process was HOSTNAME.EXE. Rule 019 (any child of wsmprovhost.exe) gave 1 detection. Trade-off: rule 019 is noisier where PowerShell remoting is used for administration and will need an allow-list.
+
+**Tuning pass 3 (rule 001).** The tuned variant, which requires UpdateDeploymentProvider in the parent command line, kept both detections (2 vs 2). No false positive was observed in this dataset, so the precision gain is by design and not measured on benign traffic. Full details: `tuning/tuning_report.md`.
 
 ## 7. Threat Hunts
-`hunt_001_suspicious_wuauclt.md`, `hunt_002_keepass_credential_access.md`, `correlation_001_winrm.txt`. `[FILL: one-line outcome each: confirmed / inconclusive / ruled out. Confirm one hunt targets a technique with no existing rule.]`
+| Hunt | Technique | Conclusion |
+|---|---|---|
+| 001 wuauclt unsigned DLL load | T1218 | Confirmed |
+| 002 PowerShell injection into KeePass | T1055 / T1555.005 | Confirmed as injection; credential theft not proven by logs |
+| 003 generic CreateRemoteThread | T1055 (no generic rule) | Confirmed for the KeePass pair only; no other injection found |
+
+Files: threat_hunts/hunt_001..003. correlation_001_winrm.txt is a supporting note. Hunt 003 satisfies the requirement for a hunt on a technique without an existing rule.
 
 ## 8. Incident Case Reports
 - INC-001: `incident_reports/incident_001_case_report_wuauclt.md` (True Positive)
@@ -96,7 +109,7 @@ See `coverage_matrix/attack_coverage_matrix.csv`: 22 techniques across 10 tactic
 `ioc_research/ioc_research_001_wuauclt.md`, `ioc_research_002_keepass.md`. Key IOCs from real evidence: `C:\ProgramData\Intel\helpa.dll` (path, wuauclt abuse); wuauclt command-line flag `/UpdateDeploymentProvider`; powershell.exe injecting threads into KeePass.exe. Operationalised via rules 001 and 018.
 
 ## 11. Limitations (disclosed honestly)
-- Only 2 of 18 rules validated on real telemetry; the rest are untested.
+- Only 3 of 21 rules validated by tool on real telemetry (2 more by manual count); the rest are untested.
 - Three small public datasets, single host each; no benign baseline, so false-positive rates are unmeasured.
 - Rule 017 correlation not confirmed by a tool.
 - Splunk queries generated but never executed.

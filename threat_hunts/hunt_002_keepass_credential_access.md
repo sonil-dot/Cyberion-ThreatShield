@@ -1,43 +1,37 @@
-# Threat Hunt 002 — Potential KeePass Credential Access
+# Threat Hunt 002 - PowerShell Remote Thread Injection into KeePass
 
 ## 1. Hypothesis
-PowerShell creating a remote thread inside KeePass.exe may indicate process injection or an attempt to access sensitive application memory.
+PowerShell creating remote threads inside KeePass.exe indicates process injection aimed at KeePass memory, consistent with credential-access tooling.
 
-## 2. Objective
-Investigate whether the observed process interaction is consistent with unauthorized credential access or another explanation.
+## 2. Data and method
+- Dataset: CA_keepass_KeeThief_Get-KeePassDatabaseKey.evtx (Sysmon, host IEWIN7). The dataset contains only 2 events, both Sysmon Event ID 8.
+- Method: (1) read EventData fields with Get-WinEvent XML parsing; (2) run Sigma rule 018 with Chainsaw v2.17.1.
+- Evidence: data_dictionary/evidence_rule018_sysmon_eid8.txt, evidence_rule018_chainsaw_output.txt
 
-## 3. Data Source
-- Dataset: CA_keepass_KeeThief_Get-KeePassDatabaseKey
-- Log source: Microsoft-Windows-Sysmon/Operational
-- Event ID 8 — CreateRemoteThread
+## 3. Findings
+| Record ID | UtcTime | Thread | Start address | Module / function |
+|---|---|---|---|---|
+| 7070 | 2019-04-27 18:55:04.710 | 3796 | 0x76FAEC4B | ntdll.dll / DbgUiRemoteBreakin |
+| 7071 | 2019-04-27 18:55:04.980 | 1384 | 0x06160000 | none |
 
-## 4. Observed Evidence
-- Timestamp (UTC): 2019-04-27 18:55:04.980
-- Computer: IEWIN7
-- Source process: powershell.exe
-- Source process ID: 2856
-- Target process: KeePass.exe
-- Target process ID: 2364
-- Start address: 0x06160000
-- Start module and function: Not provided
+Both threads: source C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe (PID 2856), target C:\Program Files\KeePass Password Safe 2\KeePass.exe (PID 2364).
 
-## 5. Analysis
-The event records PowerShell creating a thread inside KeePass.exe. This is relevant to process-injection investigations because remote-thread creation can be used by both legitimate tools and malicious software.
+- The first thread starts in ntdll at a break-in routine used when attaching to a process.
+- The second thread starts at an address with no backing module, consistent with injected code.
+- Two threads from one source within 0.27 seconds.
 
-The event is consistent with the hunt hypothesis, but it does not independently prove credential theft. The source script, related process events, and additional telemetry have not yet been examined.
+## 4. What the data cannot show (negative results)
+- No process-creation events, so the PowerShell command line and parent are unknown.
+- No Event ID 10 (process access), file or network events, so key extraction is not observable.
+- No benign baseline, so false-positive rate is unmeasured.
 
-## 6. Preliminary Outcome
-Status: Initial evidence found; investigation incomplete.
+## 5. Conclusion
+**Confirmed as process injection into KeePass by PowerShell.** The hypothesis that this is credential-access tooling is supported by the pattern and the dataset name but is **not proven by the logs alone**.
 
-The observed process interaction warrants further investigation. A definitive malicious or benign classification cannot be assigned from this event alone.
+## 6. Detection outcome
+- Rule 018: 2 detections (records 7070, 7071).
+- Tuned variant (tuning/rule_018_tuned.yml): 1 detection (record 7070); trade-off documented in tuning/tuning_report.md.
+- Correlation rule 020: 2 threads from one source process in 0.27 s (manually validated).
 
-## 7. Recommended Follow-up
-1. Review nearby events and related process activity.
-2. Identify the PowerShell command or script responsible, if the available logs contain it.
-3. Search for related file, network, and credential-access activity.
-4. Record false-positive possibilities and any supporting or contradictory evidence.
-
-## 8. Detection Engineering
-Candidate detection idea: PowerShell creating a remote thread inside KeePass.exe.
-
-Validation status: Detection logic and matching behavior have not yet been tested.
+## 7. Follow-up in a real environment
+Pull Event ID 1 for PID 2856 (command line, parent), PowerShell script block logging (4104), Event ID 10 on KeePass, and file access to the .kdbx database; rotate vault credentials if KeePass was unlocked.

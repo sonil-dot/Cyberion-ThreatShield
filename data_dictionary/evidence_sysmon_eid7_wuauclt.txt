@@ -1,0 +1,51 @@
+
+
+Name  : RuleName
+#text : 
+
+Name  : UtcTime
+#text : 2020-10-13 20:11:42.268
+
+Name  : ProcessGuid
+#text : {00247c92-09fe-5f86-0000-001051841401}
+
+Name  : ProcessId
+#text : 1716
+
+Name  : Image
+#text : C:\Windows\System32\wuauclt.exe
+
+Name  : ImageLoaded
+#text : C:\ProgramData\Intel\helpa.dll
+
+Name  : FileVersion
+#text : ?
+
+Name  : Description
+#text : ?
+
+Name  : Product
+#text : ?
+
+Name  : Company
+#text : ?
+
+Name  : OriginalFileName
+#text : ?
+
+Name  : Hashes
+#text : SHA1=AF7687063F8EE1C8FD57D1A5FE6FA4F28A53C434,MD5=6AB43126243BE72FF
+        7D446D5A496AA76,SHA256=56C5AFF6AC04BDF86EDBC4F0D0F9581F250A4C97DD60
+        FD1179F153AC20230920,IMPHASH=8DEF796746DD54062D5B3186EEF39356
+
+Name  : Signed
+#text : false
+
+Name  : Signature
+#text : 
+
+Name  : SignatureStatus
+#text : Unavailable
+
+
+
