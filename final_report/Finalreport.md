@@ -21,7 +21,7 @@ The project also identified areas where detection coverage could be improved, pa
 
 Based on the findings, the main recommendations are to test the remaining rules with suitable datasets, improve coverage of the identified gaps, and use documented incident response playbooks when handling security alerts.
 
- 2. Methodology
+2. Methodology
 
 The project was completed using publicly available Windows event log samples and a combination of security analysis tools.
 
@@ -55,32 +55,48 @@ The following Windows Sysmon event types and fields were important during the in
 
 | Field | Purpose |
 
-| Image / CommandLine | Identifies the program that was executed and its arguments. 
-| ParentImage / ParentCommandLine | Shows which process started it. Useful for identifying suspicious parent-child relationships. 
-| User, LogonId, IntegrityLevel | Provides information about the account and security context in which the process ran. 
-| ProcessGuid / ParentProcessGuid | Helps connect related events and build a process timeline. 
-| Hashes | Useful for identifying and researching suspicious files. 
-| OriginalFileName | Helps identify executables that may have been renamed. 
+Field: Image / CommandLine 
+Purpose:Identifies the program that was executed and its arguments. 
+Field: ParentImage / ParentCommandLine 
+Purpose:Shows which process started it. Useful for identifying suspicious parent-child relationships. 
+Field: User, LogonId, IntegrityLevel 
+Purpose:Provides information about the account and security context in which the process ran. 
+Field: ProcessGuid / ParentProcessGuid 
+Purpose: Helps connect related events and build a process timeline. 
+Field: Hashes 
+Purpose:Useful for identifying and researching suspicious files. 
+Field: OriginalFileName 
+Purpose: Helps identify executables that may have been renamed. 
 
 3.2 Sysmon Event ID 8 – CreateRemoteThread
 
 | Field | Purpose |
 
-| SourceImage / SourceProcessId | Identifies the process initiating the remote thread. 
-| TargetImage / TargetProcessId | Identifies the process receiving the thread. 
-| StartAddress | Shows the memory address where the thread begins. 
-| StartModule / StartFunction | Provides information about the module and function associated with the thread. 
-| NewThreadId | Identifies the newly created thread. 
+Field: SourceImage / SourceProcessId 
+Purpose: Identifies the process initiating the remote thread. 
+Field: TargetImage / TargetProcessId 
+Purpose: Identifies the process receiving the thread. 
+Field: StartAddress 
+Purpose: Shows the memory address where the thread begins. 
+Field:StartModule / StartFunction 
+Purpose: Provides information about the module and function associated with the thread. 
+Field: NewThreadId 
+Purpose: Identifies the newly created thread. 
 
 3.3 Sysmon Event ID 7 – Image Load
 
 | Field | Purpose |
 
-| Image / ProcessId | Identifies the process loading a module. 
-| ImageLoaded | Shows the path of the DLL being loaded. 
-| Signed / SignatureStatus | Provides information about the digital signature of the loaded file. 
-| Hashes | Helps identify and research loaded DLLs. 
-| ProcessGuid | Helps connect the DLL load event with other events from the same process. 
+Field: Image / ProcessId 
+Purpose: Identifies the process loading a module. 
+Field: ImageLoaded 
+Purpose: Shows the path of the DLL being loaded. 
+Field:  Signed / SignatureStatus 
+Purpose: Provides information about the digital signature of the loaded file. 
+Field:  Hashes 
+Purpose: Helps identify and research loaded DLLs. 
+Field:  ProcessGuid 
+Purpose: Helps connect the DLL load event with other events from the same process. 
 
 4. Detection Rule Library
 
@@ -92,9 +108,12 @@ Rule testing results
 
 | Testing status | Rule numbers |
 
-| Successfully validated using event log data | 001, 002, 004, 005, 006, 007, 010, 012, 013, 015, 018, 019 
-| Created but not successfully validated | 003, 008, 009, 011, 014, 016, 017 
-| Correlation rules checked manually | 020, 021 
+Testing status : Successfully validated using event log data 
+Rule numbers: 001, 002, 004, 005, 006, 007, 010, 012, 013, 015, 018, 019 
+Testing status: Created but not successfully validated 
+Rule numbers: 003, 008, 009, 011, 014, 016, 017 
+Testing status: Correlation rules checked manually 
+Rule numbers: 020, 021 
 
 Rule 001 identified two suspicious events involving WUauclt. Rule 018 was tested against the KeePass process injection sample. Rule 019 identified a child process launched by WSMProvHost, while the more restrictive Rule 016 did not match that particular sample.
 
@@ -163,9 +182,15 @@ Three threat hunts were conducted to investigate suspicious activity in the avai
 
 | Hunt | Technique investigated | Result 
 
-| Hunt 001 – WUauclt unsigned DLL load | T1218 | Suspicious activity confirmed. 
-| Hunt 002 – PowerShell injection into KeePass | T1055 / T1555.005 | Process injection confirmed, but credential theft was not proven by the logs. 
-| Hunt 003 – Generic CreateRemoteThread activity | T1055 | Injection activity confirmed for the KeePass events. No other injection activity was identified in the reviewed data. 
+Hunt: Hunt 001 – WUauclt unsigned DLL load 
+Technique investigated: T1218 
+Result: Suspicious activity confirmed. 
+Hunt: Hunt 002 – PowerShell injection into KeePass 
+Technique investigated: T1055 / T1555.005 
+Result: Process injection confirmed, but credential theft was not proven by the logs. 
+Hunt: Hunt 003 – Generic CreateRemoteThread activity 
+Technique investigated: T1055 
+Result: Injection activity confirmed for the KeePass events. No other injection activity was identified in the reviewed data. 
 
 The hunt documentation is available under threat_hunts, in the hunt_001 to hunt_003 files.
 
