@@ -234,18 +234,6 @@ There were a few limitations during the project that affected the extent of test
 
 These limitations mean that the detection rules should be treated as project-tested detection content rather than production-ready rules.
 
-12. Recommendations
-
-Based on the work completed, the following improvements are recommended:
-
-1. Test the remaining seven rules using suitable Windows attack samples.
-2. Develop additional detections for phishing, command-and-control activity, data exfiltration, and remote desktop abuse.
-3. Test the rules against normal administrative activity to identify possible false positives.
-4. Validate the correlation rules using a correlation-capable detection platform.
-5. Test the generated Splunk queries in a live or test Splunk environment.
-6. Use the incident response playbooks as a reference when investigating similar alerts.
-7. Review the MITRE ATT&CK mappings and update the coverage matrix where necessary.
-
 Appendix A – Project Repository
 
 The project files, Sigma rules, datasets, test reports, investigation notes, and supporting documentation are maintained in the GitHub repository:
