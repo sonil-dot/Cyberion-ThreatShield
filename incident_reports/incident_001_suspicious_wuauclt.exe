@@ -1,0 +1,49 @@
+# Incident Case Report 001 - Suspicious wuauclt.exe Spawning cmd.exe
+
+| Field | Detail |
+|---|---|
+| Case ID | INC-001 |
+| Source | Rule 001 (rule_001_suspicious_wuauclt.yml) |
+| Dataset | evasion_execution_imageload_wuauclt_lolbas.evtx (public EVTX sample) |
+| Host / User | LAPTOP-JU4M3I0E / bouss |
+| Log source | Sysmon Event ID 1 (process creation) |
+| ATT&CK | T1218 System Binary Proxy Execution (verify exact ID on attack.mitre.org) |
+| Closure | True Positive (adversary-emulation sample) |
+
+## 1. Detection
+Rule 001 matched 2 events via Chainsaw v2.17.1 ("2 Detections found on 2 documents"). Evidence: `data_dictionary/rule001_chainsaw.json`, `rule_test_001_wuauclt.md`.
+
+## 2. Timeline (UTC, from raw Sysmon EID 1)
+| Time | Record ID | Event | Evidence |
+|---|---|---|---|
+| 2020-10-13 20:11:42.277 | 2196442 | wuauclt.exe (PID 1716) spawns cmd.exe (PID 6372) | ParentImage C:\Windows\System32\wuauclt.exe |
+| 2020-10-13 20:11:42.277 | 2196443 | Same parent spawns a second cmd.exe (PID 7648) | Same ParentProcessGuid 00247C92-09FE-5F86-0000-001051841401 |
+
+Parent command line (both events):
+`wuauclt.exe /UpdateDeploymentProvider C:\ProgramData\Intel\helpa.dll /RunHandlerComServer`
+
+Context: IntegrityLevel Medium, LogonId 0x6f859, cmd.exe is the genuine Microsoft binary (Company: Microsoft Corporation, OriginalFileName Cmd.Exe).
+
+## 3. Root cause analysis
+wuauclt.exe was invoked with /UpdateDeploymentProvider pointing at a DLL (helpa.dll) in C:\ProgramData\Intel\, a folder that does not normally hold Windows Update components. This is a documented LOLBin technique for executing a DLL through a signed Microsoft binary. The signed parent bypasses simple allow-listing; the child cmd.exe processes are the observable result.
+
+Not verified in my review: whether helpa.dll load is visible as Sysmon EID 7 in this dataset (the filename suggests image-load events exist). `[FILL: check EID 7 for helpa.dll and add the record ID and hashes]`
+
+## 4. Corroboration (second source)
+`[FILL: EID 7 image load of helpa.dll, or EID 11 file creation, from the same dataset]`. If no second source exists, state that corroboration is limited to a single log type.
+
+## 5. ATT&CK mapping
+| Stage | Technique |
+|---|---|
+| DLL executed via wuauclt | T1218 System Binary Proxy Execution |
+| cmd.exe spawned | T1059.003 Windows Command Shell (secondary) |
+
+## 6. Impact
+Code of attacker choice executed under user "bouss" at Medium integrity (no elevation observed). Follow-on actions inside cmd.exe are not visible in these two events. `[FILL: any later events in the dataset]`
+
+## 7. Response
+Follow `playbooks/playbook_001_suspicious_process_injection.md` (adapt for LOLBin execution): isolate host, collect helpa.dll and hash it, block the path, review parent chain, hunt for wuauclt with /UpdateDeploymentProvider across the estate.
+
+## 8. Closure and detection gap
+- Classification: **True Positive.** The command line and unusual DLL path are unambiguous. The data is from a public emulation sample, not a live client.
+- Gap: rule 001 only fires when cmd.exe is the child. A DLL-only run with no child process would be missed. Recommend a second rule on the wuauclt command-line flags alone.

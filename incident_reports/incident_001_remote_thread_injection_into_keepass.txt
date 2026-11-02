@@ -1,0 +1,48 @@
+# Incident Case Report 002 - Remote Thread Injection into KeePass
+
+| Field | Detail |
+|---|---|
+| Case ID | INC-002 |
+| Source | Rule 018 (rule_018_keepass_remote_thread.yml) and hunt_002 |
+| Dataset | CA_keepass_KeeThief_Get-KeePassDatabaseKey.evtx (public EVTX sample) |
+| Host | IEWIN7 |
+| Log source | Sysmon Event ID 8 (CreateRemoteThread) |
+| ATT&CK | T1555.005 Credentials from Password Managers; T1055 Process Injection (verify) |
+| Closure | True Positive (adversary-emulation sample) |
+
+## 1. Detection
+Rule 018 matched 2 events via Chainsaw v2.17.1 ("2 Detections found on 2 documents"). Evidence: `data_dictionary/evidence_rule018_chainsaw_output.txt`, `evidence_rule018_sysmon_eid8.txt`, `rule_test_018_keepass_remote_thread.md`.
+
+## 2. Timeline (UTC, from raw Sysmon EID 8)
+| Time | Record ID | Source | Target | New thread | Start |
+|---|---|---|---|---|---|
+| 2019-04-27 18:55:04.710 | 7070 | powershell.exe PID 2856 | KeePass.exe PID 2364 | 3796 | ntdll.dll!DbgUiRemoteBreakin (0x76FAEC4B) |
+| 2019-04-27 18:55:04.980 | 7071 | powershell.exe PID 2856 | KeePass.exe PID 2364 | 1384 | 0x06160000, no module, no function |
+
+Source: C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe
+Target: C:\Program Files\KeePass Password Safe 2\KeePass.exe
+
+Note: PowerShell cmdlet output showed 00:25:04 because Get-WinEvent converts to local time (IST). UtcTime in the raw event is 18:55:04.
+
+## 3. Root cause analysis
+One PowerShell process created two threads inside KeePass 270 ms apart. The first starts at DbgUiRemoteBreakin, the routine used when a debugger-style break-in is forced into a process. The second starts at an address with no backing module, which is consistent with injected code executing. The dataset name (KeeThief, Get-KeePassDatabaseKey) indicates the emulated tool, which targets the KeePass master key in memory. The events alone do not prove the key was extracted.
+
+## 4. Corroboration (second source)
+`[FILL: Sysmon EID 1 for powershell.exe PID 2856 (command line), or EID 10 process access to KeePass, if present in the dataset]`
+
+## 5. ATT&CK mapping
+| Stage | Technique |
+|---|---|
+| PowerShell tooling launched | T1059.001 |
+| Thread injected into KeePass | T1055 Process Injection (verify) |
+| Master key targeted | T1555.005 Credentials from Password Managers |
+
+## 6. Impact
+If KeePass was unlocked, the master key and therefore all stored credentials may be exposed. Treat every credential in the database as compromised until shown otherwise.
+
+## 7. Response
+Follow `playbooks/playbook_003_potential_credential_compromise.md`: isolate host, rotate all passwords in the vault, change the master password and key file, review authentication logs for use of those credentials.
+
+## 8. Closure and detection gap
+- Classification: **True Positive.** A non-KeePass process creating threads inside KeePass has no ordinary explanation here.
+- Gap: rule 018 is KeePass-specific. Other password managers are not covered. Tuning option: require StartFunction DbgUiRemoteBreakin. That would match only 1 of these 2 events (record 7070) and miss the unbacked-address thread. See tuning pass.
